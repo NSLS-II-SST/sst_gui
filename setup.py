@@ -7,7 +7,7 @@ setup(
     install_requires=["bluesky_widgets", "qtpy"],
     packages=find_packages(),
     name="sst_gui",
-    use_scm_version=True
+    use_scm_version=True,
     entry_points={
         "console_scripts": [
             "sst-gui = sst_gui.main:main"],
