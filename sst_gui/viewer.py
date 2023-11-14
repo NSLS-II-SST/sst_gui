@@ -1,10 +1,15 @@
 from bluesky_widgets.models.run_engine_client import RunEngineClient
 from bluesky_widgets.qt import Window
+from .models import UserStatus, BeamlineModel
+
 
 from .widgets import QtViewer
 from .settings import SETTINGS
 
 from qtpy.QtWidgets import QAction
+from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
+
+loadConfigDB("/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml")
 
 
 class ViewerModel:
@@ -19,6 +24,8 @@ class ViewerModel:
             http_server_uri=SETTINGS.http_server_uri,
             http_server_api_key=SETTINGS.http_server_api_key,
         )
+        self.user_status = UserStatus(self.run_engine)
+        self.beamline = BeamlineModel()
 
 
 class Viewer(ViewerModel):
