@@ -7,9 +7,9 @@ from .widgets import QtViewer
 from .settings import SETTINGS
 
 from qtpy.QtWidgets import QAction
-from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
+#from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
 
-loadConfigDB("/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml")
+#loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
 
 class ViewerModel:

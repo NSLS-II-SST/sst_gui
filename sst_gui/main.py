@@ -2,7 +2,7 @@ import argparse
 import os
 
 from bluesky_widgets.qt import gui_qt
-
+from sst_funcs.configuration import loadConfigDB
 from .viewer import Viewer
 from .settings import SETTINGS
 
@@ -43,6 +43,7 @@ def main(argv=None):
         "it overrides the address specified with QSERVER_HTTP_SERVER_URI environment variable. "
         "Use QSERVER_HTTP_SERVER_API_KEY environment variable to pass an API key for authorization.",
     )
+    parser.add_argument("--config", required=True, help="Location of config file to load Opyhd objects from")
     args = parser.parse_args(argv)
 
     # The priority is first to check if an address is passed as a parameter and then
@@ -82,6 +83,8 @@ def main(argv=None):
         SETTINGS.zmq_re_manager_control_addr = zmq_control_addr
         SETTINGS.zmq_re_manager_info_addr = zmq_info_addr
 
+    loadConfigDB(args.config)
+    
     with gui_qt("BlueSky Queue Monitor"):
         viewer = Viewer()  # noqa: 401
 

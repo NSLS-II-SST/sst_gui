@@ -5,7 +5,7 @@ from bluesky_queueserver_api import BFunc
 import time
 
 from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
-loadConfigDB("/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml")
+#loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
 class UserStatus(QObject):
     def __init__(self, runEngineClient, *args, **kwargs):
@@ -104,8 +104,8 @@ class EnergyModel:
 
 def energyModelFromOphyd(energy):
     name = energy.name
-    energy_RB = energy.monoen.user_readback.pvname
-    energy_SP = energy.monoen.user_setpoint.pvname
+    energy_RB = energy.monoen.readback.pvname
+    energy_SP = energy.monoen.setpoint.pvname
     gap_RB = energy.epugap.user_readback.pvname
     gap_SP = energy.epugap.user_setpoint.pvname
     phase_RB = energy.epuphase.user_readback.pvname

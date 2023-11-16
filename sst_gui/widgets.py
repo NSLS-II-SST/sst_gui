@@ -36,7 +36,7 @@ from .models import energyModelFromOphyd, gvFromOphyd, motorFromOphyd, pvFromOph
 from .samplelist import QtSampleView
 from typhos.plugins import register_signal, SignalPlugin
 #from typhos import TyphosPositionerWidget
-loadConfigDB("/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml")
+#loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 #pydm.data_plugins.add_plugin(SignalPlugin)
 
 
@@ -213,7 +213,11 @@ class OphydMotorControl(QWidget):
             self.setpoint = signal.setpoint
         else:
             self.setpoint = signal.user_setpoint
-        self.lineEdit.setText(str(self.setpoint.get()))
+        try:
+            sp = self.setpoint.get()
+        except:
+            sp = "Not Connected"
+        self.lineEdit.setText(str(sp))
         box.addWidget(self.lineEdit)
         self.position = QLabel("")
         box.addWidget(self.position)
@@ -550,7 +554,7 @@ class SSTMonitorTab(QWidget):
         vbox.addLayout(beamBox)
         vbox.addWidget(HLine())
 
-        vbox.addWidget(VoltMeterWidget(["sc", "i0", "i1", "ref"]))
+        vbox.addWidget(VoltMeterWidget(["sc", "i0", "ref"]))
         manipulator = findAndLoadDevice("manipulator")
         #vbox.addWidget(OphydPositionMonitor(eslit, "Exit Slit"))
         hbox = QHBoxLayout()
@@ -664,7 +668,7 @@ class InteractiveTab(QWidget):
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox.addWidget(autoloadPVMonitor("ring_current"))
-        hbox.addWidget(VoltMeterWidget(["sc", "i0", "i1", "ref"]))
+        hbox.addWidget(VoltMeterWidget(["sc", "i0", "ref"]))
         vbox.addLayout(hbox)
         #self.controller = loadOphydWidget("sst_control", pvFromOphyd, SSTControl)
         #self.controller.disabler.disableSignal.connect(self.print_disabled)
