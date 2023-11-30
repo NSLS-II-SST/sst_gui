@@ -1,3 +1,7 @@
+from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QHBoxLayout
+from pydm.widgets import PyDMLabel
+
+
 class PVMonitorBoxLayout(QVBoxLayout):
     def __init__(self, modelList):
         super().__init__()
@@ -9,6 +13,7 @@ class PVMonitorV(QWidget):
     """
     Monitor a generic PV
     """
+
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
         vbox = QVBoxLayout()
@@ -22,6 +27,7 @@ class PVMonitorH(QWidget):
     """
     Monitor a generic PV
     """
+
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
         hbox = QHBoxLayout()
@@ -35,6 +41,7 @@ class VoltMonitor(QWidget):
     """
     Monitor a generic PV
     """
+
     def __init__(self, prefix, label, *args, **kwargs):
         super().__init__(*args, **kwargs)
         vbox = QVBoxLayout()

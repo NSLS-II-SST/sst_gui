@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from bluesky_widgets.qt.threading import FunctionWorker
-from qtpy.QtCore import QObject, Slot, Signal
+from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QWidget
 from bluesky_queueserver_api import BFunc
 import time
-from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
-#loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
+from sst_funcs.configuration import findAndLoadDevice
+
+# loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
 
 class UserStatus(QObject):
@@ -34,25 +35,29 @@ class UserStatus(QObject):
 
     def get_update(self, key):
         function = BFunc("request_update", key)
-        response = self.REClientModel._client.function_execute(function, run_in_background=True)
-        self.REClientModel._client.wait_for_completed_task(response['task_uid'])
-        reply = self.REClientModel._client.task_result(response['task_uid'])
-        task_status = reply['status']
-        task_result = reply['result']
-        if task_status == 'completed' and task_result.get('success', False):
-            return task_result['return_value']
+        response = self.REClientModel._client.function_execute(
+            function, run_in_background=True
+        )
+        self.REClientModel._client.wait_for_completed_task(response["task_uid"])
+        reply = self.REClientModel._client.task_result(response["task_uid"])
+        task_status = reply["status"]
+        task_result = reply["result"]
+        if task_status == "completed" and task_result.get("success", False):
+            return task_result["return_value"]
         else:
             raise ValueError("Update unsuccessful")
 
     def _reload_status(self):
         function = BFunc("get_status")
-        response = self.REClientModel._client.function_execute(function, run_in_background=True)
-        self.REClientModel._client.wait_for_completed_task(response['task_uid'])
-        reply = self.REClientModel._client.task_result(response['task_uid'])
-        task_status = reply['status']
-        task_result = reply['result']
-        if task_status == 'completed' and task_result.get('success', False):
-            user_status = task_result['return_value']
+        response = self.REClientModel._client.function_execute(
+            function, run_in_background=True
+        )
+        self.REClientModel._client.wait_for_completed_task(response["task_uid"])
+        reply = self.REClientModel._client.task_result(response["task_uid"])
+        task_status = reply["status"]
+        task_result = reply["result"]
+        if task_status == "completed" and task_result.get("success", False):
+            user_status = task_result["return_value"]
         else:
             raise ValueError("Status did not load successfully")
         new_uids = {}
@@ -77,7 +82,7 @@ class UserStatus(QObject):
         is_connected = bool(event.is_connected)
         status = event.status
         worker_exists = status.get("worker_environment_exists", False)
-        self._deactivate_updates = (not is_connected or not worker_exists)
+        self._deactivate_updates = not is_connected or not worker_exists
         if not self._deactivate_updates and not self.updates_activated:
             self._start_thread()
 
@@ -126,7 +131,7 @@ class EnergyModel:
     grating_SP: str
 
 
-class GVModel:
+class BaseModel:
     def __init__(self, name, obj, group, label):
         self.name = name
         self.obj = obj
@@ -134,6 +139,8 @@ class GVModel:
         self.label = label
         self.enabled = True
 
+
+class GVModel(BaseModel):
     def open(self):
         self.obj.open_nonplan()
 
@@ -141,16 +148,10 @@ class GVModel:
         self.obj.close_nonplan()
 
 
-class PVModel:
-    def __init__(self, name, obj, group, label):
-        self.name = name
-        self.obj = obj
-        self.group = group
-        self.label = label
-        self.enabled = True
-
+class PVModel(BaseModel):
     def set(self, val):
         self.obj.set(val)
+
 
 @dataclass
 class MotorModel:
@@ -160,8 +161,6 @@ class MotorModel:
     label: str = ""
 
 
-
 class ManipulatorModel:
     def __init__(self, manipulator):
         self._manipulator = manipulator
-        

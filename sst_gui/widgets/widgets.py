@@ -2,50 +2,28 @@ from bluesky_widgets.apps.queue_monitor.widgets import (
     QtRunEngineManager_Editor,
     QtRunEngineManager_Monitor,
 )
-from bluesky_widgets.qt.threading import FunctionWorker
-from bluesky_widgets.qt.run_engine_client import (
-    QtReEnvironmentControls,
-    QtReManagerConnection,
-    QtReQueueControls,
-    QtReExecutionControls,
-    QtReStatusMonitor,
-    QtRePlanQueue,
-    QtRePlanHistory,
-    QtReRunningPlan,
-    QtRePlanEditor,
-    QtReConsoleMonitor,
-)
-from bluesky_queueserver_api import BPlan, BFunc
+from bluesky_queueserver_api import BPlan
 from qtpy.QtWidgets import (
     QTabWidget,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QLabel,
-    QFrame,
     QGroupBox,
-    QApplication,
-    QLineEdit,
     QComboBox,
     QPushButton,
     QMessageBox,
-    QDialog,
-    QDialogButtonBox,
-    QFormLayout,
 )
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtGui import QColor
+from qtpy.QtCore import Signal
 from pydm.widgets.label import PyDMLabel
 from pydm.widgets.byte import PyDMByteIndicator
 from pydm.widgets.pushbutton import PyDMPushButton
 from pydm.widgets.line_edit import PyDMLineEdit
-from pydm.widgets.enum_combo_box import PyDMEnumComboBox
-from pydm.widgets.base import PyDMWidget
-import pydm
-from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
-from .layout import FlowLayout
-from .models import energyModelFromOphyd, gvFromOphyd, motorFromOphyd, pvFromOphyd
-from .samplelist import QtSampleView
+from sst_funcs.configuration import findAndLoadDevice, getObjConfig
+from ..layout import FlowLayout
+from ..models import energyModelFromOphyd, gvFromOphyd, motorFromOphyd
+from ..samplelist import QtSampleView
+from .monitorTab import MonitorTab
 
 # from typhos.plugins import register_signal, SignalPlugin
 # from typhos import TyphosPositionerWidget
@@ -308,7 +286,7 @@ class QtViewer(QTabWidget):
         self._re_manager_editor = QtRunEngineManager_Editor(model.run_engine)
         self.addTab(self._re_manager_editor, "Edit and Control Queue")
 
-        self._bl_status_monitor = SSTMonitorTab(model)
+        self._bl_status_monitor = MonitorTab(model)
         self.addTab(self._bl_status_monitor, "Beamline Status")
 
         self._bl_interactive = InteractiveTab(model)
