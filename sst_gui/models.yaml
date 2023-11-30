@@ -1,0 +1,12 @@
+shutters:
+  _default:
+    _target_:
+  - psh4
+  - psh10
+  - psh7
+scalars:
+  - i0
+  - i1
+  - ref
+  - sc
+  

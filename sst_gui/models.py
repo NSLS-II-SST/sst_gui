@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from bluesky_widgets.qt.threading import FunctionWorker
-from qtpy.QtCore import QObject, Slot
+from qtpy.QtCore import QObject, Slot, Signal
+from qtpy.QtWidgets import QWidget
 from bluesky_queueserver_api import BFunc
 import time
-
 from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
 #loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
+
 
 class UserStatus(QObject):
     def __init__(self, runEngineClient, *args, **kwargs):
@@ -89,6 +90,29 @@ class BeamlineModel:
         self.energy.rotation_motor = self.manipulator.r
 
 
+class ControlModel(QWidget):
+    controlChange = Signal(str)
+
+    def __init__(self, signal, requester):
+        self.signal = signal
+        self.requester = requester
+        self.signal.subscribe(self._control_change)
+
+    def request_control(self):
+        self.signal.set(self.requester)
+
+    def _control_change(self, *args, value, **kwargs):
+        self.controlChange.emit(value)
+
+
+@dataclass
+class OphydModel:
+    name: str
+    obj: object
+    group: str = ""
+    label: str = ""
+
+
 @dataclass
 class EnergyModel:
     name: str
@@ -102,73 +126,39 @@ class EnergyModel:
     grating_SP: str
 
 
-def energyModelFromOphyd(energy):
-    name = energy.name
-    energy_RB = energy.monoen.readback.pvname
-    energy_SP = energy.monoen.setpoint.pvname
-    gap_RB = energy.epugap.user_readback.pvname
-    gap_SP = energy.epugap.user_setpoint.pvname
-    phase_RB = energy.epuphase.user_readback.pvname
-    phase_SP = energy.epuphase.user_setpoint.pvname
-    grating_RB = energy.monoen.gratingx.readback.pvname
-    grating_SP = energy.monoen.gratingx.setpoint.pvname
-    enModel = EnergyModel(name,
-                          energy_RB, energy_SP,
-                          gap_RB, gap_SP,
-                          phase_RB, phase_SP,
-                          grating_RB, grating_SP)
-    return enModel
-
-
-@dataclass
 class GVModel:
-    name: str
-    state_RB: str
-    cmd_open: str
-    cmd_close: str
-    openval: int = 1
-    closeval: int = 0
+    def __init__(self, name, obj, group, label):
+        self.name = name
+        self.obj = obj
+        self.group = group
+        self.label = label
+        self.enabled = True
+
+    def open(self):
+        self.obj.open_nonplan()
+
+    def close(self):
+        self.obj.close_nonplan()
 
 
-def gvFromOphyd(gv):
-    name = gv.name
-    state_RB = gv.state.pvname
-    openval = gv.openval
-    closeval = gv.closeval
-    cmd_open = gv.opn.pvname
-    cmd_close = gv.cls.pvname
-    gvModel = GVModel(name, state_RB, cmd_open, cmd_close, openval, closeval)
-    return gvModel
-
-
-@dataclass
 class PVModel:
-    name: str
-    display_name: str
-    prefix: str
+    def __init__(self, name, obj, group, label):
+        self.name = name
+        self.obj = obj
+        self.group = group
+        self.label = label
+        self.enabled = True
 
-
-def pvFromOphyd(oph):
-    name = oph.name
-    display_name = getattr(oph, "display_name", name)
-    prefix = oph.pvname
-    pvModel = PVModel(name, display_name, prefix)
-    return pvModel
-
+    def set(self, val):
+        self.obj.set(val)
 
 @dataclass
 class MotorModel:
     name: str
-    display_name: str
-    prefix: str
+    obj: object
+    group: str = ""
+    label: str = ""
 
-
-def motorFromOphyd(mtr):
-    name = mtr.name
-    display_name = getattr(mtr, "display_name", name)
-    prefix = mtr.prefix
-    mtrModel = MotorModel(name, display_name, prefix)
-    return mtrModel
 
 
 class ManipulatorModel:

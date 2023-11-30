@@ -1,15 +1,15 @@
 from bluesky_widgets.models.run_engine_client import RunEngineClient
 from bluesky_widgets.qt import Window
-from .models import UserStatus, BeamlineModel
+from .models import UserStatus
 
 
 from .widgets import QtViewer
 from .settings import SETTINGS
 
 from qtpy.QtWidgets import QAction
-#from sst_funcs.configuration import loadConfigDB, findAndLoadDevice, getObjConfig
+from sst_funcs.configuration import instantiateGroup
 
-#loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
+CONFIG = "/home/jamie/work/visualization/sst_gui/sst_gui/config.yaml"
 
 
 class ViewerModel:
@@ -25,7 +25,8 @@ class ViewerModel:
             http_server_api_key=SETTINGS.http_server_api_key,
         )
         self.user_status = UserStatus(self.run_engine)
-        self.beamline = BeamlineModel()
+        self.gatevalves = instantiateGroup("gatevalves", filename=CONFIG)
+        self.ringstatus = instantiateGroup("ringstatus", filename=CONFIG)
 
 
 class Viewer(ViewerModel):
@@ -44,13 +45,19 @@ class Viewer(ViewerModel):
 
         menu_bar = self._window._qt_window.menuBar()
         menu_item_control = menu_bar.addMenu("Control Actions")
-        self.action_activate_env_destroy = QAction("Activate 'Destroy Environment'", self._window._qt_window)
+        self.action_activate_env_destroy = QAction(
+            "Activate 'Destroy Environment'", self._window._qt_window
+        )
         self.action_activate_env_destroy.setCheckable(True)
         self._update_action_env_destroy_state()
-        self.action_activate_env_destroy.triggered.connect(self._activate_env_destroy_triggered)
+        self.action_activate_env_destroy.triggered.connect(
+            self._activate_env_destroy_triggered
+        )
         menu_item_control.addAction(self.action_activate_env_destroy)
 
-        self._widget.model.run_engine.events.status_changed.connect(self.on_update_widgets)
+        self._widget.model.run_engine.events.status_changed.connect(
+            self.on_update_widgets
+        )
 
     def _update_action_env_destroy_state(self):
         env_destroy_activated = self._widget.model.run_engine.env_destroy_activated
