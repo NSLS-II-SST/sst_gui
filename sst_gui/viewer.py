@@ -7,7 +7,7 @@ from .settings import SETTINGS
 from .widgets import QtViewer
 
 from qtpy.QtWidgets import QAction
-from sst_funcs.configuration import instantiateGroup, findAndLoadDevice
+from .models import BeamlineModel
 
 CONFIG = "/home/jamie/work/visualization/sst_gui/sst_gui/config.yaml"
 
@@ -25,12 +25,7 @@ class ViewerModel:
             http_server_api_key=SETTINGS.http_server_api_key,
         )
         self.user_status = UserStatus(self.run_engine)
-        self.gatevalves = instantiateGroup("gatevalves", filename=CONFIG)
-        self.ringstatus = instantiateGroup("ringstatus", filename=CONFIG)
-        self.motors = instantiateGroup("motors", filename=CONFIG)
-        self.scalars = instantiateGroup("scalars", filename=CONFIG)
-        self.energy = findAndLoadDevice("energy", filename=CONFIG)
-        self.bl_control = findAndLoadDevice("bl_control", filename=CONFIG)
+        self.beamline = BeamlineModel(CONFIG)
 
 
 class Viewer(ViewerModel):

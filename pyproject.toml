@@ -9,16 +9,14 @@ authors = [
     { email = "ctitus@bnl.gov" },
 ]
 requires-python = ">=3.7"
+dependencies = ["bluesky_widgets", "qtpy"]
 
 [project.urls]
 homepage = "https://github.com/NSLS-II-SST/sst-gui"  # Replace with your project's homepage
 
 [project.scripts]
 sst-gui = "sst_gui.main:main"
-sst-convert-config = "sst_gui.autoconf:convert_config"
-
-[project.dependencies]
-bluesky_widgets = "*"
-qtpy = "*"
+sst-convert-config = "sst_gui.autoconf:main"
+sst-gui-test = "sst_gui.testScaffolding:main"
 
 [project.optional-dependencies]

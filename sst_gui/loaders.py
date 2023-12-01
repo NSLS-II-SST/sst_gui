@@ -1,58 +1,64 @@
 from sst_funcs.configuration import findAndLoadDevice
-from .models import GVModel, PVModel, MotorModel, EnergyModel, OphydModel
+from .models import GVModel, PVModel, MotorModel, EnergyModel, BaseModel
 
 SST_CONFIG = "/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml"
 
 
-def modelFromOphyd(prefix, group=None, label=None):
+def modelFromOphyd(prefix, group=None, label=None, modelClass=BaseModel):
     obj = findAndLoadDevice(prefix, filename=SST_CONFIG)
     name = obj.name
     if label is None:
         label = getattr(obj, "display_name", name)
-    model = OphydModel(name, obj, group, label)
+    model = modelClass(name, obj, group, label)
     return model
 
 
 def pvFromOphyd(prefix, group=None, label=None):
-    obj = findAndLoadDevice(prefix, filename=SST_CONFIG)
-    name = obj.name
-    if label is None:
-        label = getattr(obj, "display_name", name)
-    pvModel = PVModel(name, obj, group, label)
-    return pvModel
+    return modelFromOphyd(prefix, group, label, modelClass=PVModel)
 
 
 def gvFromOphyd(prefix, group=None, label=None):
-    obj = findAndLoadDevice(prefix, filename=SST_CONFIG)
-    name = obj.name
-    if label is None:
-        label = getattr(obj, "display_name", name)
-    gvModel = GVModel(name, obj, group, label)
-    return gvModel
+    return modelFromOphyd(prefix, group, label, modelClass=GVModel)
 
 
 def motorFromOphyd(prefix, group=None, label=None):
-    obj = findAndLoadDevice(prefix, filename=SST_CONFIG)
-    name = obj.name
-    if label is None:
-        label = getattr(obj, "display_name", name)
-    mtrModel = MotorModel(name, obj, group, label)
-    return mtrModel
+    return modelFromOphyd(prefix, group, label, modelClass=MotorModel)
 
 
-def energyModelFromOphyd(energy):
+def energyModelFromOphyd(prefix, group=None, label=None):
+    energy = findAndLoadDevice(prefix, filename=SST_CONFIG)
     name = energy.name
-    energy_RB = energy.monoen.readback.pvname
-    energy_SP = energy.monoen.setpoint.pvname
-    gap_RB = energy.epugap.user_readback.pvname
-    gap_SP = energy.epugap.user_setpoint.pvname
-    phase_RB = energy.epuphase.user_readback.pvname
-    phase_SP = energy.epuphase.user_setpoint.pvname
-    grating_RB = energy.monoen.gratingx.readback.pvname
-    grating_SP = energy.monoen.gratingx.setpoint.pvname
-    enModel = EnergyModel(name,
-                          energy_RB, energy_SP,
-                          gap_RB, gap_SP,
-                          phase_RB, phase_SP,
-                          grating_RB, grating_SP)
+    energy_motor = MotorModel(
+        name=energy.monoen.name,
+        obj=energy.monoen,
+        group=group,
+        label=energy.monoen.name,
+    )
+    gap_motor = MotorModel(
+        name=energy.epugap.name,
+        obj=energy.epugap,
+        group=group,
+        label=energy.epugap.name,
+    )
+    phase_motor = MotorModel(
+        name=energy.epuphase.name,
+        obj=energy.epuphase,
+        group=group,
+        label=energy.epuphase.name,
+    )
+    grating_motor = MotorModel(
+        name=energy.monoen.gratingx.name,
+        obj=energy.monoen.gratingx,
+        group=group,
+        label=energy.monoen.gratingx.name,
+    )
+    enModel = EnergyModel(
+        name,
+        energy_motor,
+        gap_motor,
+        phase_motor,
+        grating_motor,
+        group,
+        label,
+    )
     return enModel

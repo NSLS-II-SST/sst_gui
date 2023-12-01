@@ -1,91 +1,65 @@
 from qtpy.QtWidgets import QLabel, QPushButton, QHBoxLayout, QWidget, QLineEdit
-from qtpy.QtCore import Signal, Slot
-from .utils import OphydByteIndicator
+from qtpy.QtCore import Slot
+from .utils import ByteIndicator
 
 
 class MotorMonitor(QWidget):
-    position_updated = Signal(float)
-
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.model = model
-        box = QHBoxLayout()
+        self.box = QHBoxLayout()
         self.label = QLabel(self.model.label)
-        box.addWidget(self.label)
+        self.box.addWidget(self.label)
         self.position = QLabel("")
-        box.addWidget(self.position)
-        box.addWidget(OphydByteIndicator(self.obj.motor_is_moving))
-        self.model.obj.subscribe(self._update_position)
-        self.position_updated.connect(self.update_position)
-        self.setLayout(box)
-
-    def _update_position(self, *args, value, **newpos):
-        self.position_updated.emit(value)
+        self.box.addWidget(self.position)
+        self.indicator = ByteIndicator()
+        self.box.addWidget(self.indicator)
+        self.model.positionChanged.connect(self.update_position)
+        self.model.movingStatusChanged.connect(self.update_indicator)
+        self.setLayout(self.box)
 
     @Slot(float)
     def update_position(self, value):
-        self.position.setText(str(value))
+        self.position.setText("{:.2f}".format(value))
+
+    @Slot(bool)
+    def update_indicator(self, status):
+        color = "green" if status else "grey"
+        self.indicator.setColor(color)
 
 
-class MotorControl(QWidget):
-    position_updated = Signal(float)
-
+class MotorControl(MotorMonitor):
     def __init__(self, model, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        box = QHBoxLayout()
-        self.obj = model.obj
-        self.model = model
-        self.label = QLabel(model.label)
-        box.addWidget(self.label)
+        super().__init__(model, *args, **kwargs)
         self.lineEdit = QLineEdit()
         self.lineEdit.editingFinished.connect(self.enter_position)
-        if hasattr(self.obj, "setpoint"):
-            self.setpoint = self.obj.setpoint
-        else:
-            self.setpoint = self.obj.user_setpoint
-        try:
-            sp = self.setpoint.get()
-        except:
-            sp = "Not Connected"
-        self.lineEdit.setText(str(sp))
-        box.addWidget(self.lineEdit)
-        self.position = QLabel("")
-        box.addWidget(self.position)
-        box.addWidget(OphydByteIndicator(self.obj.motor_is_moving))
-        self.obj.subscribe(self._update_position)
-        self.position_updated.connect(self.update_position)
+
+        self.lineEdit.setText("{:2f}".format(self.model.position))
+        self.box.insertWidget(2, self.lineEdit)
         lbutton = QPushButton("<")
         lbutton.clicked.connect(self.tweak_left)
         self.tweakEdit = QLineEdit()
         self.tweakEdit.setText("1")
         rbutton = QPushButton(">")
         rbutton.clicked.connect(self.tweak_right)
-        box.addWidget(lbutton)
-        box.addWidget(self.tweakEdit)
-        box.addWidget(rbutton)
-        self.setLayout(box)
-
-    def _update_position(self, *args, value, **newpos):
-        self.position_updated.emit(value)
-
-    @Slot(float)
-    def update_position(self, value):
-        self.position.setText(str(value))
+        self.box.insertWidget(4, lbutton)
+        self.box.insertWidget(5, self.tweakEdit)
+        self.box.insertWidget(6, rbutton)
 
     def enter_position(self):
         newpos = float(self.lineEdit.text())
-        self.obj.set(newpos)
+        self.model.set_position(newpos)
 
     def tweak_left(self):
-        current_position = self.obj.position
+        current_position = self.model.position
         step = float(self.tweakEdit.text())
         new_sp = current_position - step
-        self.obj.set(new_sp)
+        self.model.set_position(new_sp)
         self.lineEdit.setText(str(new_sp))
 
     def tweak_right(self):
-        current_position = self.obj.position
+        current_position = self.model.position
         step = float(self.tweakEdit.text())
         new_sp = current_position + step
-        self.obj.set(new_sp)
+        self.model.set_position(new_sp)
         self.lineEdit.setText(str(new_sp))

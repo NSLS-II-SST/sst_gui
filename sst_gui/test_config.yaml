@@ -1,0 +1,78 @@
+controllers:
+  adr:
+    _target_: modelFromOphyd
+    label: adr
+detectors:
+  _default:
+    _target_: ScalarModel
+  i0:
+    label: ucal_i0up
+  i0mir:
+    _target_: ScalarModel
+    label: DM7_i400_i0mirror
+  i1:
+    label: ucal_i1
+  ref:
+    label: ucal_ref
+  sc:
+    label: ucal_sc
+  tes:
+    _target_: modelFromOphyd
+    label: tes
+energy:
+  energy:
+    _target_: EnergyModel
+    label: en
+gatevalves:
+  _default:
+    _target_: modelFromOphyd
+  gv26:
+    label: Post Shutter Gate Valve
+  gv27:
+    label: Upstream Gate Valve
+  gv28:
+    label: Downstream Gate Valve
+manipulators:
+  manipulator:
+    _target_: ManipulatorModel
+    label: manip
+  multimesh:
+    _target_: ManipulatorModel
+    label: i0upmultimesh
+mirrors:
+  _default:
+    _target_: modelFromOphyd
+  mir1:
+    label: SST 1 Mirror 1 fmb
+  mir3:
+    label: SST 1 Mirror 3 fmb
+  mir4:
+    label: SST 1 Mirror 4 fmb
+motors:
+  Exit_Slit:
+    label: Exit Slit of Mono Vertical Gap
+  _default:
+    _target_: MotorModel
+  i0upAu:
+    label: i0upAu
+  tesz:
+    label: tesz
+shutters:
+  _default:
+    _target_: GVModel
+  psh1:
+    label: Front-End Shutter
+  psh10:
+    label: Upstream Photon Shutter
+  psh4:
+    label: Hutch Photon Shutter
+  psh7:
+    label: Downstream Photon Shutter
+signals:
+  _default:
+    _target_: ScalarModel
+  ring_current:
+    label: NSLS-II Ring Current
+  sst_control:
+    _target_: PVModel
+    label: Endstation in Control

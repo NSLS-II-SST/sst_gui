@@ -23,29 +23,32 @@ def modify_yaml(
         data = yaml.safe_load(file)
 
     def replace_target_values(data):
-        for key, value in data.items():
+        new_data = {}
+        for key in list(data.keys()):
+            value = data[key]
             if key == "_target_":
                 class_name = value.split(".")[-1]
                 if value in translation_dict:
-                    data[key] = translation_dict[value]
+                    new_data[key] = translation_dict[value]
                 elif class_name in translation_dict:
-                    data[key] = translation_dict[class_name]
+                    new_data[key] = translation_dict[class_name]
                 elif default_target is not None:
-                    data[key] = default_target
+                    new_data[key] = default_target
                 else:
                     raise KeyError(
                         f"{class_name} not found in translation_dict and no\
                           default target was provided"
                     )
             elif key == "name":
-                data["label"] = data.pop("name")
+                new_data["label"] = data["name"]
             elif isinstance(value, dict):
-                replace_target_values(value)
+                new_data[key] = replace_target_values(value)
+        return new_data
 
-    replace_target_values(data)
+    new_data = replace_target_values(data)
 
     with open(output_filename, "w") as file:
-        yaml.safe_dump(data, file)
+        yaml.safe_dump(new_data, file)
 
 
 def convert_config(input_filename, output_filename, translation_updates={}):
@@ -80,3 +83,25 @@ def convert_config(input_filename, output_filename, translation_updates={}):
     }
     default_translation_dict.update(translation_updates)
     modify_yaml(input_filename, output_filename, default_translation_dict)
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Convert a beamline config file into a GUI config file."
+    )
+    parser.add_argument(
+        "input_filename",
+        type=str,
+        help="The path to the input YAML file to be modified.",
+    )
+    parser.add_argument(
+        "output_filename",
+        type=str,
+        help="The path where the modified YAML data will be written.",
+    )
+
+    args = parser.parse_args()
+
+    convert_config(args.input_filename, args.output_filename)
