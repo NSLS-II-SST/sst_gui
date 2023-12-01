@@ -1,0 +1,14 @@
+sst_gui.egg-info/dependency_links.txt
+sst_gui.egg-info/entry_points.txt
+sst_gui.egg-info/PKG-INFO
+sst_gui.egg-info/requires.txt
+sst_gui.egg-info/SOURCES.txt
+sst_gui.egg-info/top_level.txt
+*.py~
+*.pyc
+*#
+*~
+sst_gui/.#config.yaml
+sst_gui/.#viewer.py
+.aider*
+build

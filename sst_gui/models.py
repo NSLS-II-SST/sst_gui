@@ -153,12 +153,16 @@ class PVModel(BaseModel):
         self.obj.set(val)
 
 
-@dataclass
-class MotorModel:
-    name: str
-    obj: object
-    group: str = ""
-    label: str = ""
+class ScalarModel(BaseModel):
+    pass
+
+
+class MotorModel(BaseModel):
+    pass
+
+
+class HexapodModel(BaseModel):
+    pass
 
 
 class ManipulatorModel:

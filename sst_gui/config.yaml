@@ -6,16 +6,19 @@ gatevalves:
     group: ucal
     label: "Upstream Photon Shutter"
   psh1:
-    _target_: modelFromOphyd
     prefix: psh1
     group: ucal
     label: "Front End Photon Shutter"
 ringstatus:
   _default:
     _target_: sst_gui.loaders.modelFromOphyd
+  current:
+    prefix: ring_current
 misc:
   manipulator:
     _target_: sst_gui.loaders.modelFromOphyd
     prefix: manipulator
     group: ucal
     label: "Manipulator"
+  bl_control:
+    prefix: sst_control

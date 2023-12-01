@@ -10,6 +10,8 @@ setup(
     use_scm_version=True,
     entry_points={
         "console_scripts": [
-            "sst-gui = sst_gui.main:main"],
-        },
-    )
+            "sst-gui = sst_gui.main:main",
+            "sst-convert-config = sst_gui.autoconf:convert_config",
+        ],
+    },
+)

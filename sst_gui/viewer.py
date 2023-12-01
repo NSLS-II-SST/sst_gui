@@ -3,11 +3,11 @@ from bluesky_widgets.qt import Window
 from .models import UserStatus
 
 
-from .widgets import QtViewer
 from .settings import SETTINGS
+from .widgets import QtViewer
 
 from qtpy.QtWidgets import QAction
-from sst_funcs.configuration import instantiateGroup
+from sst_funcs.configuration import instantiateGroup, findAndLoadDevice
 
 CONFIG = "/home/jamie/work/visualization/sst_gui/sst_gui/config.yaml"
 
@@ -27,6 +27,10 @@ class ViewerModel:
         self.user_status = UserStatus(self.run_engine)
         self.gatevalves = instantiateGroup("gatevalves", filename=CONFIG)
         self.ringstatus = instantiateGroup("ringstatus", filename=CONFIG)
+        self.motors = instantiateGroup("motors", filename=CONFIG)
+        self.scalars = instantiateGroup("scalars", filename=CONFIG)
+        self.energy = findAndLoadDevice("energy", filename=CONFIG)
+        self.bl_control = findAndLoadDevice("bl_control", filename=CONFIG)
 
 
 class Viewer(ViewerModel):

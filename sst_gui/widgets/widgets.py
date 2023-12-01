@@ -241,38 +241,6 @@ class VoltMeterWidget(QGroupBox):
         self.setLayout(hbox)
 
 
-class InteractiveTab(QWidget):
-    def __init__(self, model, *args, **kwargs):
-        print("Initializing Placeholder Tab")
-        super().__init__(*args, **kwargs)
-        vbox = QVBoxLayout()
-        hbox = QHBoxLayout()
-        hbox.addWidget(autoloadPVMonitor("ring_current"))
-        hbox.addWidget(VoltMeterWidget(["sc", "i0", "ref"]))
-        vbox.addLayout(hbox)
-        # self.controller = loadOphydWidget("sst_control", pvFromOphyd, SSTControl)
-        # self.controller.disabler.disableSignal.connect(self.print_disabled)
-        # vbox.addWidget(self.controller)
-        vbox.addWidget(ShutterControlWidget(["psh7", "psh10", "psh4"]))
-        vbox.addWidget(HLine())
-        vbox.addWidget(EnergyControl(model))
-        vbox.addWidget(autoloadMotorControl("tesz"))
-        vbox.addWidget(autoloadMotorControl("i0upAu"))
-        vbox.addLayout(SampleSelectWidget(model))
-        vbox.addStretch()
-        hbox2 = QHBoxLayout()
-        hbox2.addWidget(QtStatusBox(model.user_status, "User Metadata", "USER_MD"))
-        hbox2.addWidget(
-            QtStatusBox(model.user_status, "Selected Sample", "SAMPLE_SELECTED")
-        )
-        # hbox.addWidget(QtStatusBox(model.user_status, "Sample List", "SAMPLE_LIST"))
-        vbox.addLayout(hbox2)
-        self.setLayout(vbox)
-
-    def print_disabled(self):
-        print("Disabled at top level")
-
-
 class QtViewer(QTabWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)

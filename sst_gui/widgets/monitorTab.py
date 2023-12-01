@@ -2,7 +2,8 @@ from qtpy.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout
 from bluesky_widgets.qt.run_engine_client import (
     QtReEnvironmentControls,
     QtReManagerConnection,
-    QtReStatusMonitor)
+    QtReStatusMonitor,
+)
 from .status import ProposalStatus, StatusBox, BLController
 from .utils import HLine
 
@@ -33,10 +34,19 @@ class EnvironmentMonitor(QHBoxLayout):
 class MonitorTab(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        t = (run_engine, user_status, controller,
-        ring_status_list, gv_list, scalar_list, manipulator)
+        t = (
+            run_engine,
+            user_status,
+            controller,
+            ring_status_list,
+            gv_list,
+            scalar_list,
+            manipulator,
+        )
         vbox = QVBoxLayout()
-        statusDisplay = EnvironmentMonitor(model.run_engine, model.user_status, model.bl_control)
+        statusDisplay = EnvironmentMonitor(
+            model.run_engine, model.user_status, model.bl_control
+        )
 
         vbox.addLayout(statusDisplay)
         vbox.addWidget(HLine())
@@ -51,7 +61,7 @@ class MonitorTab(QWidget):
 
         vbox.addWidget(VoltMeterWidget(["sc", "i0", "ref"]))
         manipulator = findAndLoadDevice("manipulator")
-        #vbox.addWidget(OphydPositionMonitor(eslit, "Exit Slit"))
+        # vbox.addWidget(OphydPositionMonitor(eslit, "Exit Slit"))
         hbox = QHBoxLayout()
         hbox.addWidget(ManipulatorMonitor(manipulator))
         hbox.addWidget(StatusBox(user_status, "Selected Sample", "SAMPLE_SELECTED"))
