@@ -1,51 +1,45 @@
 from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QHBoxLayout
-from pydm.widgets import PyDMLabel
 
 
-class PVMonitorBoxLayout(QVBoxLayout):
-    def __init__(self, modelList):
+class PVMonitorVBoxLayout(QVBoxLayout):
+    def __init__(self, modeldict):
         super().__init__()
-        for model in modelList:
-            self.addWidget(PVMonitorV(model))
+        for model in modeldict.values():
+            self.addWidget(PVMonitor(model, "h"))
 
 
-class PVMonitorV(QWidget):
+class PVMonitorHBoxLayout(QHBoxLayout):
+    def __init__(self, modeldict):
+        super().__init__()
+        for model in modeldict.values():
+            self.addWidget(PVMonitor(model, "v"))
+
+
+class PVMonitor(QWidget):
     """
     Monitor a generic PV
     """
 
-    def __init__(self, model, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        vbox = QVBoxLayout()
+    def __init__(self, model, orientation="v", **kwargs):
+        super().__init__(**kwargs)
+        self.model = model
+        if orientation == "v":
+            box = QVBoxLayout()
+        else:
+            box = QHBoxLayout()
         self.label = model.label
-        vbox.addWidget(QLabel(self.label))
-        vbox.addWidget(PyDMLabel(init_channel=f"ca://{model.obj.pvname}"))
-        self.setLayout(vbox)
+        self.value = QLabel("")
+        self.model.valueChanged.connect(self.value.setText)
+        box.addWidget(QLabel(self.label))
+        box.addWidget(self.value)
+        self.setLayout(box)
 
 
-class PVMonitorH(QWidget):
-    """
-    Monitor a generic PV
-    """
-
-    def __init__(self, model, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        hbox = QHBoxLayout()
-        self.label = model.label
-        hbox.addWidget(QLabel(f"{self.label}:"))
-        hbox.addWidget(PyDMLabel(init_channel=f"ca://{model.obj.pvname}"))
-        self.setLayout(hbox)
+class PVMonitorV(PVMonitor):
+    def __init__(self, model, **kwargs):
+        super().__init__(model, orientation="v", **kwargs)
 
 
-class VoltMonitor(QWidget):
-    """
-    Monitor a generic PV
-    """
-
-    def __init__(self, prefix, label, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        vbox = QVBoxLayout()
-        self.label = label
-        vbox.addWidget(QLabel(self.label))
-        vbox.addWidget(PyDMLabel(init_channel=f"ca://{prefix}Volt"))
-        self.setLayout(vbox)
+class PVMonitorH(PVMonitor):
+    def __init__(self, model, **kwargs):
+        super().__init__(model, orientation="h", **kwargs)

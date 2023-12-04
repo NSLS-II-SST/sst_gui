@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from bluesky_widgets.qt.threading import FunctionWorker
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QWidget
@@ -92,60 +91,65 @@ class BeamlineModel:
     def __init__(self, config_file):
         with open(config_file, "r") as file:
             config = yaml.safe_load(file)
-            for key in config.keys():
-                setattr(self, key, instantiateGroup(key, filename=config_file))
-
-
-class ControlModel(QWidget):
-    controlChange = Signal(str)
-
-    def __init__(self, signal, requester):
-        self.signal = signal
-        self.requester = requester
-        self.signal.subscribe(self._control_change)
-
-    def request_control(self):
-        self.signal.set(self.requester)
-
-    def _control_change(self, *args, value, **kwargs):
-        self.controlChange.emit(value)
+        for key in config.keys():
+            print(f"Loading {key} in BeamlineModel")
+            setattr(self, key, instantiateGroup(key, filename=config_file))
+        self.energy["energy"].energy.rotation_motor = self.manipulators[
+            "manipulator"
+        ].obj.r
+        print("Finished loading BeamlineModel")
 
 
 class EnergyModel:
+    default_controller = "EnergyControl"
+    default_monitor = "EnergyMonitor"
+
     def __init__(
         self,
         name,
+        energy,
         energy_motor,
         gap_motor,
         phase_motor,
         grating_motor,
         group,
         label,
+        **kwargs,
     ):
         self.name = name
+        self.energy = energy
         self.energy_motor = energy_motor
         self.gap_motor = gap_motor
         self.phase_motor = phase_motor
         self.grating_motor = grating_motor
         self.group = group
         self.label = label
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 class BaseModel(QWidget):
-    def __init__(self, name, obj, group, label):
+    default_controller = None
+    default_monitor = "PVMonitor"
+
+    def __init__(self, name, obj, group, label, **kwargs):
         super().__init__()
         self.name = name
         self.obj = obj
         self.group = group
         self.label = label
         self.enabled = True
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 class GVModel(BaseModel):
+    default_controller = "GVControl"
+    default_monitor = "GVMonitor"
     gvStatusChanged = Signal(str)
 
-    def __init__(self, name, obj, group, label):
-        super().__init__(name, obj, group, label)
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
         self.obj.state.subscribe(self._status_change, run=True)
 
     def open(self):
@@ -161,32 +165,82 @@ class GVModel(BaseModel):
             self.gvStatusChanged.emit("closed")
 
 
-class PVModel(BaseModel):
+class PVModelRO(BaseModel):
+    valueChanged = Signal(str)
+
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
+        self.value_type = None
+        self.obj.subscribe(self._value_changed, run=True)
+
+    def _value_changed(self, value, **kwargs):
+        if self.value_type is None:
+            if isinstance(value, float):
+                self.value_type = float
+            elif isinstance(value, int):
+                self.value_type = int
+            elif isinstance(value, str):
+                self.value_type = str
+            else:
+                self.value_type = type(value)
+        if self.value_type is float:
+            value = "{:.2f}".format(value)
+        elif self.value_type is int:
+            value = "{:d}".format(value)
+        else:
+            value = str(value)
+        self.valueChanged.emit(value)
+
+
+class PVModel(PVModelRO):
     def set(self, val):
-        self.obj.set(val)
+        self.obj.set(val).wait()
 
 
 class ScalarModel(BaseModel):
-    pass
+    valueChanged = Signal(str)
+
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
+        self.value_type = None
+        self.obj.target.subscribe(self._value_changed, run=True)
+
+    def _value_changed(self, value, **kwargs):
+        if self.value_type is None:
+            if isinstance(value, float):
+                self.value_type = float
+            elif isinstance(value, int):
+                self.value_type = int
+            elif isinstance(value, str):
+                self.value_type = str
+            else:
+                self.value_type = type(value)
+        if self.value_type is float:
+            value = "{:.2f}".format(value)
+        elif self.value_type is int:
+            value = "{:d}".format(value)
+        else:
+            value = str(value)
+        self.valueChanged.emit(value)
 
 
-class MotorModel(BaseModel):
-    positionChanged = Signal(float)
+class MotorModel(PVModel):
+    default_controller = "MotorControl"
+    default_monitor = "MotorMonitor"
     movingStatusChanged = Signal(bool)
 
-    def __init__(self, name, obj, group, label):
-        super().__init__(name, obj, group, label)
-        self.obj.subscribe(self._update_position)
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
         self.obj.motor_is_moving.subscribe(self._update_moving_status)
-
-    def _update_position(self, value, **kwargs):
-        self.positionChanged.emit(value)
+        if hasattr(self.obj, "user_setpoint"):
+            self.setpoint = self.obj.user_setpoint
+        elif hasattr(self.obj, "setpoint"):
+            self.setpoint = self.obj.setpoint
+        else:
+            self.setpoint = self.obj
 
     def _update_moving_status(self, value, **kwargs):
         self.movingStatusChanged.emit(value)
-
-    def set_position(self, value):
-        self.obj.set(value)
 
     @property
     def position(self):
@@ -195,14 +249,49 @@ class MotorModel(BaseModel):
         except:
             return 0
 
+    def set(self, value):
+        self.setpoint.set(value).wait()
+
+
+class PVPositionerModel(PVModel):
+    default_controller = "MotorControl"
+    default_monitor = "MotorMonitor"
+    movingStatusChanged = Signal(bool)
+
+    def _update_moving_status(self, value, **kwargs):
+        if value == 0:
+            self.movingStatusChanged.emit(True)
+        else:
+            self.movingStatusChanged.emit(False)
+
+
+class ControlModel(BaseModel):
+    controlChange = Signal(str)
+
+    def __init__(self, name, obj, group, label, requester=None, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
+        self.requester = requester
+        self.obj.subscribe(self._control_change)
+
+    def request_control(self, requester=None):
+        if requester is None:
+            requester = self.requester
+        if requester is not None:
+            self.obj.set(requester).wait(timeout=10)
+        else:
+            raise ValueError("Cannot request control with requester None")
+
+    def _control_change(self, *args, value, **kwargs):
+        self.controlChange.emit(value)
+
 
 class HexapodModel(BaseModel):
     pass
 
 
 class ManipulatorModel(BaseModel):
-    def __init__(self, name, obj, group, label):
-        super().__init__(name, obj, group, label)
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
         self.real_axes_models = [
             MotorModel(
                 name=real_axis.name, obj=real_axis, group=group, label=real_axis.name

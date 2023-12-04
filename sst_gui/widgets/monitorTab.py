@@ -3,22 +3,15 @@ from bluesky_widgets.qt.run_engine_client import (
     QtReEnvironmentControls,
     QtReManagerConnection,
     QtReStatusMonitor,
+    QtReRunningPlan,
 )
 from .status import ProposalStatus, StatusBox, BLController
 from .utils import HLine
-
-"""
-build monitor tab:
-monitorTab(
-    runEngine
-    user_status
-    sst_control
-    ring_current -> ring_status_list
-    gatevalves
-    energy
-    voltmeters
-    manipulator
-"""
+from .monitors import PVMonitorVBoxLayout, PVMonitorHBoxLayout
+from .gatevalve import GVControlBox
+from .manipulator_monitor import RealManipulatorMonitor
+from .energy import EnergyMonitor
+from .views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 
 
 class EnvironmentMonitor(QHBoxLayout):
@@ -34,38 +27,42 @@ class EnvironmentMonitor(QHBoxLayout):
 class MonitorTab(QWidget):
     def __init__(self, model, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        t = (
-            run_engine,
-            user_status,
-            controller,
-            ring_status_list,
-            gv_list,
-            scalar_list,
-            manipulator,
-        )
+        run_engine = model.run_engine
+        user_status = model.user_status
+        beamline = model.beamline
         vbox = QVBoxLayout()
+        print("Adding Environment Monitor")
         statusDisplay = EnvironmentMonitor(
-            model.run_engine, model.user_status, model.bl_control
+            run_engine, user_status, beamline.beamline_control["sst_control"]
         )
 
         vbox.addLayout(statusDisplay)
         vbox.addWidget(HLine())
-
         beamBox = QHBoxLayout()
-        beamBox.addWidget(PVMonitorBox(model.ringstatus))
-        beamBox.addWidget(ShutterControlWidget(["psh7", "psh10", "psh4"]))
-        beamBox.addWidget(autoloadEnergyMonitor(self.model.beamline))
+        print("Creating Beamline signals box")
+
+        beamBox.addWidget(AutoMonitorBox(beamline.signals, "Ring Signals"))
+        print("Beamline signals box added")
+
+        print("Beamline shutters box")
+        beamBox.addWidget(AutoControlBox(beamline.shutters, "Shutters"))
+        print("Beamline shutters box added")
+
+        beamBox.addWidget(EnergyMonitor(beamline.energy, beamline.motors["Exit_Slit"]))
 
         vbox.addLayout(beamBox)
         vbox.addWidget(HLine())
 
-        vbox.addWidget(VoltMeterWidget(["sc", "i0", "ref"]))
-        manipulator = findAndLoadDevice("manipulator")
-        # vbox.addWidget(OphydPositionMonitor(eslit, "Exit Slit"))
+        vbox.addWidget(AutoMonitorBox(beamline.detectors, "Detectors", "h"))
+        print("Added detectors Monitor")
         hbox = QHBoxLayout()
-        hbox.addWidget(ManipulatorMonitor(manipulator))
+        hbox.addWidget(RealManipulatorMonitor(beamline.manipulators["manipulator"]))
+        print("Added manipulator Monitor")
+
         hbox.addWidget(StatusBox(user_status, "Selected Sample", "SAMPLE_SELECTED"))
         vbox.addLayout(hbox)
         vbox.addWidget(QtReRunningPlan(run_engine))
+        print("Added Running Plan Monitor")
+
         vbox.addStretch()
         self.setLayout(vbox)

@@ -1,16 +1,22 @@
 from qtpy.QtWidgets import QApplication, QVBoxLayout, QWidget, QMainWindow
-from .loaders import motorFromOphyd
-from .widgets.motor import MotorControl
+from .models import BeamlineModel
+from .widgets.gatevalve import GVControlBox
+from .widgets.monitors import PVMonitorVBoxLayout
+from .widgets.manipulator_monitor import RealManipulatorMonitor
+from .widgets.energy import EnergyMonitor
+from .widgets.views import AutoMonitorBox, AutoMonitor, AutoControl, AutoControlBox
+from .widgets.planTab import PlanSubmissionWidget
 
 
 def main():
     app = QApplication([])
-
-    motormodel = motorFromOphyd("tesz")
+    beamline = BeamlineModel(
+        "/home/jamie/work/visualization/sst_gui/sst_gui/test_config.yaml"
+    )
 
     layout = QVBoxLayout()
     # layout.addWidget(QLabel("Testing"))
-    layout.addWidget(MotorControl(motormodel))
+    layout.addWidget(PlanSubmissionWidget())
 
     main_window = QMainWindow()
     central_widget = QWidget()

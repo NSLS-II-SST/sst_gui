@@ -1,78 +1,94 @@
+beamline_control:
+  sst_control:
+    _target_: sst_gui.loaders.controlFromOphyd
+    label: Endstation in Control
+    prefix: sst_control
 controllers:
   adr:
-    _target_: modelFromOphyd
-    label: adr
+    _target_: sst_gui.loaders.modelFromOphyd
+    label: Refrigerator
+    prefix: adr
 detectors:
   _default:
-    _target_: ScalarModel
+    _target_: sst_gui.loaders.scalarFromOphyd
   i0:
-    label: ucal_i0up
-  i0mir:
-    _target_: ScalarModel
-    label: DM7_i400_i0mirror
-  i1:
-    label: ucal_i1
+    label: Gold Mesh
+    prefix: i0
   ref:
-    label: ucal_ref
+    label: Multimesh
+    prefix: ref
   sc:
-    label: ucal_sc
-  tes:
-    _target_: modelFromOphyd
-    label: tes
+    label: Drain Current
+    prefix: sc
 energy:
   energy:
-    _target_: EnergyModel
-    label: en
+    _target_: sst_gui.loaders.energyModelFromOphyd
+    label: Energy
+    prefix: energy
 gatevalves:
   _default:
-    _target_: modelFromOphyd
+    _target_: sst_gui.loaders.modelFromOphyd
   gv26:
     label: Post Shutter Gate Valve
+    prefix: gv26
   gv27:
     label: Upstream Gate Valve
+    prefix: gv27
   gv28:
     label: Downstream Gate Valve
+    prefix: gv28
 manipulators:
   manipulator:
-    _target_: ManipulatorModel
-    label: manip
+    _target_: sst_gui.loaders.manipulatorFromOphyd
+    label: Sample Manipulator
+    prefix: manipulator
   multimesh:
-    _target_: ManipulatorModel
-    label: i0upmultimesh
+    _target_: sst_gui.loaders.manipulatorFromOphyd
+    label: Multimesh Reference Ladder
+    prefix: multimesh
 mirrors:
   _default:
-    _target_: modelFromOphyd
+    _target_: sst_gui.loaders.modelFromOphyd
   mir1:
     label: SST 1 Mirror 1 fmb
+    prefix: mir1
   mir3:
     label: SST 1 Mirror 3 fmb
+    prefix: mir3
   mir4:
     label: SST 1 Mirror 4 fmb
+    prefix: mir4
 motors:
   Exit_Slit:
     label: Exit Slit of Mono Vertical Gap
+    prefix: Exit_Slit
   _default:
-    _target_: MotorModel
+    _target_: sst_gui.loaders.motorFromOphyd
   i0upAu:
-    label: i0upAu
+    label: Gold Mesh Motor
+    prefix: i0upAu
   tesz:
-    label: tesz
+    label: TES Translation
+    prefix: tesz
 shutters:
   _default:
-    _target_: GVModel
+    _target_: sst_gui.loaders.gvFromOphyd
   psh1:
     label: Front-End Shutter
+    prefix: psh1
+    visible: false
   psh10:
     label: Upstream Photon Shutter
+    prefix: psh10
   psh4:
     label: Hutch Photon Shutter
+    prefix: psh4
   psh7:
     label: Downstream Photon Shutter
+    prefix: psh7
 signals:
   _default:
-    _target_: ScalarModel
+    _target_: sst_gui.loaders.pvFromOphyd
   ring_current:
     label: NSLS-II Ring Current
-  sst_control:
-    _target_: PVModel
-    label: Endstation in Control
+    prefix: ring_current

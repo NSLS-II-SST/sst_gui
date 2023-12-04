@@ -1,26 +1,16 @@
-from qtpy.QtWidgets import (QHBoxLayout, QWidget, QVBoxLayout, QGroupBox,
-                            QLabel, QDialog, QLineEdit, QPushButton,
-                            QFormLayout, QApplication)
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QWidget,
+    QVBoxLayout,
+    QGroupBox,
+    QLabel,
+    QDialog,
+    QLineEdit,
+    QPushButton,
+    QFormLayout,
+)
 from qtpy.QtCore import Signal, Slot
-from pydm.widgets.pushbutton import PyDMPushButton
-from pydm.widgets.label import PyDMLabel
 from bluesky_queueserver_api import BFunc
-from pydm.widgets.base import PyDMWidget
-
-
-# TODO: Get rid of all pydm!
-class PyDMDisabler(QWidget, PyDMWidget):
-    disableSignal = Signal()
-
-    def __init__(self, parent=None, init_channel=None):
-        QWidget.__init__(self, parent)
-        PyDMWidget.__init__(self, init_channel=init_channel)
-        self.app = QApplication.instance()
-
-    def value_changed(self, new_value):
-        if new_value != 4:
-            print("Disable!")
-            self.disableSignal.emit()
 
 
 class StatusBox(QWidget):
@@ -43,7 +33,7 @@ class StatusBox(QWidget):
         items_in_layout = self.vbox2.count()
         i = 0
         for k, v in user_md.items():
-            if i+1 > items_in_layout:
+            if i + 1 > items_in_layout:
                 hbox = QHBoxLayout()
                 hbox.addWidget(QLabel(str(k)))
                 hbox.addWidget(QLabel(str(v)))
@@ -110,17 +100,15 @@ class BLController(QGroupBox):
 
     def __init__(self, model, *args, **kwargs):
         super().__init__("Endstation Control", *args, **kwargs)
-        self.disabler = PyDMDisabler(init_channel=f"ca://{model.prefix}")
+        self.model = model
         vbox = QVBoxLayout()
-        vbox.addWidget(PyDMLabel(init_channel=f"ca://{model.prefix}"))
-        onbutton = PyDMPushButton(init_channel=f"ca://{model.prefix}",
-                                  label="Request Control")
-        onbutton.pressValue = 4
+        vbox.addWidget(QLabel(""))
+        onbutton = QPushButton("Request Control")
+        self.onValue = 4
         onbutton.showConfirmDialog = True
         onbutton.confirmMessage = "Are you sure you can have control?"
-        offbutton = PyDMPushButton(init_channel=f"ca://{model.prefix}",
-                                   label="Give Up Control")
-        offbutton.pressValue = 9
+        offbutton = QPushButton("Give Up Control")
+        self.offValue = 9
         offbutton.showConfirmDialog = True
         offbutton.confirmMessage = "Are you sure you want to release control?"
 

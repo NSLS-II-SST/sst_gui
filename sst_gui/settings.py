@@ -3,6 +3,7 @@ class Settings:
     http_server_api_key = None
     zmq_re_manager_control_addr = None
     zmq_re_manager_info_addr = None
+    config = None
 
 
 SETTINGS = Settings()

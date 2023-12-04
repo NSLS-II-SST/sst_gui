@@ -1,26 +1,36 @@
-from qtpy.QtWidgets import QLabel, QPushButton, QHBoxLayout, QWidget, QLineEdit
+from qtpy.QtWidgets import (
+    QLabel,
+    QPushButton,
+    QHBoxLayout,
+    QWidget,
+    QLineEdit,
+    QVBoxLayout,
+)
 from qtpy.QtCore import Slot
 from .utils import ByteIndicator
 
 
 class MotorMonitor(QWidget):
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, model, orientation="h", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.model = model
-        self.box = QHBoxLayout()
+        if orientation == "h":
+            self.box = QHBoxLayout()
+        else:
+            self.box = QVBoxLayout()
         self.label = QLabel(self.model.label)
         self.box.addWidget(self.label)
         self.position = QLabel("")
         self.box.addWidget(self.position)
         self.indicator = ByteIndicator()
         self.box.addWidget(self.indicator)
-        self.model.positionChanged.connect(self.update_position)
+        self.model.valueChanged.connect(self.update_position)
         self.model.movingStatusChanged.connect(self.update_indicator)
         self.setLayout(self.box)
 
-    @Slot(float)
+    @Slot(str)
     def update_position(self, value):
-        self.position.setText("{:.2f}".format(value))
+        self.position.setText(value)
 
     @Slot(bool)
     def update_indicator(self, status):
@@ -32,9 +42,9 @@ class MotorControl(MotorMonitor):
     def __init__(self, model, *args, **kwargs):
         super().__init__(model, *args, **kwargs)
         self.lineEdit = QLineEdit()
-        self.lineEdit.editingFinished.connect(self.enter_position)
+        self.lineEdit.returnPressed.connect(self.enter_position)
 
-        self.lineEdit.setText("{:2f}".format(self.model.position))
+        self.lineEdit.setText("{:2f}".format(self.model.setpoint.get()))
         self.box.insertWidget(2, self.lineEdit)
         lbutton = QPushButton("<")
         lbutton.clicked.connect(self.tweak_left)
@@ -48,18 +58,18 @@ class MotorControl(MotorMonitor):
 
     def enter_position(self):
         newpos = float(self.lineEdit.text())
-        self.model.set_position(newpos)
+        self.model.set(newpos)
 
     def tweak_left(self):
-        current_position = self.model.position
+        current_sp = self.model.setpoint.get()
         step = float(self.tweakEdit.text())
-        new_sp = current_position - step
-        self.model.set_position(new_sp)
+        new_sp = current_sp - step
+        self.model.set(new_sp)
         self.lineEdit.setText(str(new_sp))
 
     def tweak_right(self):
-        current_position = self.model.position
+        current_sp = self.model.setpoint.get()
         step = float(self.tweakEdit.text())
-        new_sp = current_position + step
-        self.model.set_position(new_sp)
+        new_sp = current_sp + step
+        self.model.set(new_sp)
         self.lineEdit.setText(str(new_sp))

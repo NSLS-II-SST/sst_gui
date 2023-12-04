@@ -1,14 +1,14 @@
 from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QGroupBox
-from ..layout import FlowLayout
-from .monitorTab import MotorMonitor, MotorControl
+from .motor import MotorMonitor, MotorControl
 
-class RealManipulatorMonitor(QVBoxLayout):
-    def __init__(self, manipulator):
-        super().__init__()
-        self.addWidget(MotorMonitor(manipulator.x))
-        self.addWidget(MotorMonitor(manipulator.y))
-        self.addWidget(MotorMonitor(manipulator.z))
-        self.addWidget(MotorMonitor(manipulator.r))
+
+class RealManipulatorMonitor(QGroupBox):
+    def __init__(self, manipulator, *args, **kwargs):
+        super().__init__(manipulator.label, *args, **kwargs)
+        vbox = QVBoxLayout()
+        for m in manipulator.real_axes_models:
+            vbox.addWidget(MotorMonitor(m))
+        self.setLayout(vbox)
 
 
 class ManipulatorMonitor(QGroupBox):

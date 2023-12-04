@@ -45,9 +45,23 @@ class GVControl(GVMonitor):
 
 
 class GVControlBox(QGroupBox):
+    """
+    GVControlBox is a widget that creates a view around GVModels.
+    It takes a dictionary 'shutters' as an argument, where the values are GVModel objects.
+    It provides a control interface for each GVModel in the 'shutters' dictionary.
+    """
+
     def __init__(self, shutters, *args, **kwargs):
+        """
+        Initializes the GVControlBox widget.
+        Args:
+            shutters (dict): A dictionary where the values are GVModel objects.
+            *args: Variable length argument list passed to the QGroupBox init method.
+            **kwargs: Arbitrary keyword arguments passed to the QGroupBox init method.
+        """
         super().__init__("Shutter Control", *args, **kwargs)
+        print("In GVControlBox")
         hbox = QHBoxLayout()
-        for s in shutters:
+        for s in shutters.values():
             hbox.addWidget(GVControl(s))
         self.setLayout(hbox)

@@ -18,5 +18,6 @@ homepage = "https://github.com/NSLS-II-SST/sst-gui"  # Replace with your project
 sst-gui = "sst_gui.main:main"
 sst-convert-config = "sst_gui.autoconf:main"
 sst-gui-test = "sst_gui.testScaffolding:main"
+sst-edit-config = "sst_gui.confEdit:main"
 
 [project.optional-dependencies]

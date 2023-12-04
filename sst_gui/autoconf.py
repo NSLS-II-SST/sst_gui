@@ -2,7 +2,10 @@ import yaml
 
 
 def modify_yaml(
-    input_filename, output_filename, translation_dict, default_target="modelFromOphyd"
+    input_filename,
+    output_filename,
+    translation_dict,
+    default_target="sst_gui.loaders.modelFromOphyd",
 ):
     """
     Modifies a YAML file based on a translation dictionary and writes the result to a new file.
@@ -22,7 +25,7 @@ def modify_yaml(
     with open(input_filename, "r") as file:
         data = yaml.safe_load(file)
 
-    def replace_target_values(data):
+    def replace_target_values(data, last_key=None):
         new_data = {}
         for key in list(data.keys()):
             value = data[key]
@@ -41,8 +44,10 @@ def modify_yaml(
                     )
             elif key == "name":
                 new_data["label"] = data["name"]
+            elif key == "prefix":
+                new_data["prefix"] = last_key
             elif isinstance(value, dict):
-                new_data[key] = replace_target_values(value)
+                new_data[key] = replace_target_values(value, key)
         return new_data
 
     new_data = replace_target_values(data)
@@ -66,20 +71,19 @@ def convert_config(input_filename, output_filename, translation_updates={}):
     None
     """
     default_translation_dict = {
-        "I400SingleCh": "ScalarModel",
-        "PrettyMotorFMBO": "MotorModel",
-        "FMBHexapodMirror": "HexapodModel",
-        "EpicsSignalRO": "ScalarModel",
-        "EpicsSignal": "PVModel",
-        "ShutterSet": "GVModel",
-        "EPS_Shutter": "GVModel",
-        "ManipulatorBuilder": "ManipulatorModel",
-        "ADCBuffer": "ScalarModel",
-        "EPICS_ADR": "ADRModel",
-        "PrettyMotor": "MotorModel",
-        "NewEnPos": "EnergyModel",
-        "StandardProsilicaV33": "PVModel",
-        "MultiMeshBuilder": "ManipulatorModel",
+        "I400SingleCh": "sst_gui.loaders.scalarFromOphyd",
+        "PrettyMotorFMBO": "sst_gui.loaders.motorFromOphyd",
+        "FMBHexapodMirror": "sst_gui.loaders.manipulatorFromOphyd",
+        "EpicsSignalRO": "sst_gui.loaders.pvFromOphyd",
+        "EpicsSignal": "sst_gui.loaders.pvFromOphyd",
+        "ShutterSet": "sst_gui.loaders.gvFromOphyd",
+        "EPS_Shutter": "sst_gui.loaders.gvFromOphyd",
+        "ManipulatorBuilder": "sst_gui.loaders.manipulatorFromOphyd",
+        "ADCBuffer": "sst_gui.loaders.scalarFromOphyd",
+        "PrettyMotor": "sst_gui.loaders.motorFromOphyd",
+        "NewEnPos": "sst_gui.loaders.energyModelFromOphyd",
+        "StandardProsilicaV33": "sst_gui.loaders.pvFromOphyd",
+        "MultiMeshBuilder": "sst_gui.loaders.manipulatorFromOphyd",
     }
     default_translation_dict.update(translation_updates)
     modify_yaml(input_filename, output_filename, default_translation_dict)

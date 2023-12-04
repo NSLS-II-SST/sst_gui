@@ -1,29 +1,33 @@
-from qtpy.QtWidgets import QGroupBox, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QMessageBox
-from qtpy.QtCore import Signal
-from pydm.widgets.label import PyDMLabel
-from pydm.widgets.pushbutton import PyDMPushButton
-from pydm.widgets.line_edit import PyDMLineEdit
-from sst_funcs.configuration import getObjConfig
-from ..layout import FlowLayout
-from ..models import energyModelFromOphyd
-from .monitorTab import PVMonitorH, PVMonitorV
+from qtpy.QtWidgets import (
+    QGroupBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QComboBox,
+    QPushButton,
+    QMessageBox,
+)
+from .motor import MotorMonitor, MotorControl
+from .monitors import PVMonitorH
 
 from bluesky_queueserver_api import BPlan
-from bluesky_widgets.apps.queue_monitor.widgets import QtRunEngineManager_Editor
+
 
 class EnergyMonitor(QGroupBox):
     """
     Display an Energy Model that has energy, gap, and phase
     """
 
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, energyModel, slitModel, *args, **kwargs):
         super().__init__("Energy Monitor", *args, **kwargs)
-        vbox = FlowLayout()
-        vbox.addWidget(PVMonitorH(model.energy_RB, "PGM Energy"))
-        vbox.addWidget(PVMonitorH(model.gap_RB, "Undulator Gap"))
-        vbox.addWidget(PVMonitorH(model.phase_RB, "Undulator Phase"))
-        vbox.addWidget(autoloadPVMonitor("Exit_Slit", "horizontal"))
-        vbox.addWidget(PVMonitorH(model.grating_RB, "Grating"))
+        vbox = QVBoxLayout()
+        if isinstance(energyModel, dict):
+            for model in energyModel.values():
+                vbox.addWidget(MotorMonitor(model.energy_motor))
+                vbox.addWidget(MotorMonitor(model.gap_motor))
+                vbox.addWidget(MotorMonitor(model.phase_motor))
+                vbox.addWidget(MotorMonitor(slitModel))
+                vbox.addWidget(MotorMonitor(model.grating_motor))
         self.setLayout(vbox)
 
 
@@ -33,8 +37,8 @@ class EnergyControl(QGroupBox):
         energy = model.beamline.energy
         self.REClientModel = model.run_engine
         vbox = QVBoxLayout()
-        vbox.addWidget(OphydMotorControl(energy.energy, "Energy"))
-        vbox.addWidget(OphydMotorControl(model.beamline.eslit, "Exit Slit"))
+        vbox.addWidget(MotorControl(energy.energy, "Energy"))
+        vbox.addWidget(MotorControl(model.beamline.eslit, "Exit Slit"))
         hbox = QHBoxLayout()
         hbox.addWidget(PVMonitorH(energy.monoen.gratingx.readback.pvname, "Grating"))
         cb = QComboBox()

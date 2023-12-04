@@ -19,7 +19,7 @@ class ByteIndicator(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.color = "grey"
-        self.setMinimumSize(QSize(25, 25))
+        self.setMinimumSize(QSize(15, 15))
 
     def paintEvent(self, event):
         painter = QPainter(self)
