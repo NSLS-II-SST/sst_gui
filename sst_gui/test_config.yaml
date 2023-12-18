@@ -80,6 +80,7 @@ shutters:
   psh10:
     label: Upstream Photon Shutter
     prefix: psh10
+    visible: true
   psh4:
     label: Hutch Photon Shutter
     prefix: psh4

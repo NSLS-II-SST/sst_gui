@@ -1,14 +1,43 @@
+from qtpy.QtWidgets import (
+    QHBoxLayout,
+    QVBoxLayout,
+    QComboBox,
+    QGroupBox,
+    QPushButton,
+    QLineEdit,
+    QLabel,
+)
+from qtpy.QtCore import Signal, QObject
+from .status import StatusBox
+from .manipulator_monitor import RealManipulatorMonitor
+from bluesky_queueserver_api import BPlan
+
+
+class SampleSelectModel(QObject):
+    signal_update_widget = Signal(object)
+
+    def __init__(self, run_engine, user_status, *args, **kwargs):
+        super().__init__()
+        self.run_engine = run_engine
+        self.signal_update_widget.connect(self.update_samples)
+        user_status.register_signal("SAMPLE_LIST", self.signal_update_widget)
+        self.samples = {}
+        self.currentSample = {}
+
+    def update_samples(self, samples):
+        self.samples = samples
+        self.signal_update_widget.emit(samples)
+
+    def select_sample(self, sample, x, y, r, origin):
+        plan = BPlan("sample_move", x, y, r, sample, origin=origin)
+        return plan
 
 
 class SampleSelectWidget(QHBoxLayout):
-    signal_update_widget = Signal(object)
-
-    def __init__(self, run_engine, user_status, manipulator, *args, **kwargs):
+    def __init__(self, model, *args, **kwargs):
         super().__init__()
-        self.run_engine = run_engine
-        self.addWidget(StatusBox(user_status, "Selected Sample", "SAMPLE_SELECTED"))
-        self.signal_update_widget.connect(self.update_samples)
-        user_status.register_signal("SAMPLE_LIST", self.signal_update_widget)
+        self.model = model
+        self.model.signal_update_widget.connect(self.update_samples)
 
         vbox = QVBoxLayout()
         cb = QComboBox()

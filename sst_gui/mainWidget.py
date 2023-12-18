@@ -6,6 +6,8 @@ from qtpy.QtWidgets import QTabWidget
 
 # from .samplelist import QtSampleView
 from .widgets.monitorTab import MonitorTab
+from .widgets.planTab import PlanTabWidget
+from .widgets.samplelist import SampleTab
 
 
 class QtViewer(QTabWidget):
@@ -24,10 +26,13 @@ class QtViewer(QTabWidget):
         self._bl_status_monitor = MonitorTab(model)
         self.addTab(self._bl_status_monitor, "Beamline Status")
         print("Added MonitorTab")
+        self._plan_editor = PlanTabWidget(model)
+        self.addTab(self._plan_editor, "Plan Editor")
+        print("Added PlanEditor")
+
         """
         self._bl_interactive = InteractiveTab(model)
         self.addTab(self._bl_interactive, "Beamline Control")
-
-        self._bl_sample_monitor = QtSampleView(model.user_status)
+    _   """
+        self._bl_sample_monitor = SampleTab(model)
         self.addTab(self._bl_sample_monitor, "Samples")
-        """
