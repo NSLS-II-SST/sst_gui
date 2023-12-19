@@ -11,8 +11,9 @@ from .models import (
     ControlModel,
     PVPositionerModel,
 )
+import pkg_resources
 
-SST_CONFIG = "/home/jamie/work/nsls-ii-sst/ucal/ucal/sim_config.yaml"
+SST_CONFIG = pkg_resources.resource_filename("ucal", "sim_config.yaml")
 
 
 def modelFromOphyd(prefix, group=None, label=None, modelClass=BaseModel, **kwargs):
