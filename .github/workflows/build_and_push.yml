@@ -1,0 +1,37 @@
+name: Build and Push Container Image
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get the latest tag
+      id: get_tag
+      run: echo "LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> "$GITHUB_ENV"
+    
+    - name: Authenticate to ghcr
+      run: echo ${{ secrets.GHCR_PAT }} | buildah login --username cjtitus --password-stdin ghcr.io
+
+    - name: Run build script
+      run: bash buildah_scripts/build.sh
+
+    - name: Push image
+      run: |
+        IMAGE_ID=ghcr.io/${{ github.repository }}
+        # Make sure IMAGE_ID is lowercase for buildah
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        echo $IMAGE_ID
+        echo "buildah push sst_gui:latest $IMAGE_ID:latest"
+        buildah push --creds ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} sst_gui:latest $IMAGE_ID:latest
+        echo "buildah push sst_gui:latest $IMAGE_ID:$LATEST_TAG"
+        buildah push sst_gui:latest $IMAGE_ID:$LATEST_TAG
