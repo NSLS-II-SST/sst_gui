@@ -5,6 +5,8 @@ from qtpy.QtWidgets import (
     QWidget,
     QLineEdit,
     QVBoxLayout,
+    QComboBox,
+    QStackedWidget,
 )
 from qtpy.QtCore import Slot
 from .utils import ByteIndicator
@@ -73,3 +75,19 @@ class MotorControl(MotorMonitor):
         new_sp = current_sp + step
         self.model.set(new_sp)
         self.lineEdit.setText(str(new_sp))
+
+
+class MotorControlCombo(QWidget):
+    def __init__(self, motorModelDict, *args, **kwargs):
+        motorControlBox = QHBoxLayout()
+        motorLabel = QLabel("Choose a Motor")
+        motorDropdown = QComboBox()
+        motorStack = QStackedWidget()
+        for key, motor in motorModelDict.items():
+            motorDropdown.addItem(key)
+            motorStack.addWidget(MotorControl(motor))
+        motorDropdown.currentIndexChanged.connect(motorStack.setCurrentIndex)
+        motorControlBox.addWidget(motorLabel)
+        motorControlBox.addWidget(motorDropdown)
+        motorControlBox.addWidget(motorStack)
+        self.setLayout(motorControlBox)

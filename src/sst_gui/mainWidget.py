@@ -8,6 +8,7 @@ from qtpy.QtWidgets import QTabWidget
 from .widgets.monitorTab import MonitorTab
 from .widgets.planTab import PlanTabWidget
 from .widgets.samplelist import SampleTab
+from .widgets.motorTab import MotorTab
 
 
 class QtViewer(QTabWidget):
@@ -29,6 +30,8 @@ class QtViewer(QTabWidget):
         self._plan_editor = PlanTabWidget(model)
         self.addTab(self._plan_editor, "Plan Editor")
         print("Added PlanEditor")
+        self._motor_control = MotorTab(model)
+        self.addTab(self._motor_control, "Motor Control")
 
         """
         self._bl_interactive = InteractiveTab(model)
