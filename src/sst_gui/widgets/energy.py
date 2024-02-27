@@ -8,7 +8,6 @@ from qtpy.QtWidgets import (
     QMessageBox,
 )
 from .motor import MotorMonitor, MotorControl
-from .monitors import PVMonitorH
 
 from bluesky_queueserver_api import BPlan
 
@@ -22,6 +21,7 @@ class EnergyMonitor(QGroupBox):
         super().__init__("Energy Monitor", *args, **kwargs)
         vbox = QVBoxLayout()
         if isinstance(energyModel, dict):
+            print("It's a dictionary!")
             for model in energyModel.values():
                 vbox.addWidget(MotorMonitor(model.energy_motor))
                 vbox.addWidget(MotorMonitor(model.gap_motor))
@@ -35,12 +35,20 @@ class EnergyControl(QGroupBox):
     def __init__(self, model, *args, **kwargs):
         super().__init__("Energy Control", *args, **kwargs)
         energy = model.beamline.energy
+        if isinstance(energy, dict):
+            energy = list(energy.values())[0]
+        print(energy)
         self.REClientModel = model.run_engine
+        print("Creating Energy Control Vbox")
         vbox = QVBoxLayout()
-        vbox.addWidget(MotorControl(energy.energy, "Energy"))
-        vbox.addWidget(MotorControl(model.beamline.eslit, "Exit Slit"))
+        print("Creating Energy Motor")
+        vbox.addWidget(MotorControl(energy.energy_motor))
+        print("Creating Exit Slit")
+        vbox.addWidget(MotorControl(model.beamline.motors["Exit_Slit"]))
+        print("Making hbox")
         hbox = QHBoxLayout()
-        hbox.addWidget(PVMonitorH(energy.monoen.gratingx.readback.pvname, "Grating"))
+        hbox.addWidget(MotorMonitor(energy.grating_motor))
+        print("Making ComboBox")
         cb = QComboBox()
         self.cb = cb
         cb.addItem("250 l/mm", 2)

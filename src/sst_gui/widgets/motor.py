@@ -8,8 +8,8 @@ from qtpy.QtWidgets import (
     QComboBox,
     QStackedWidget,
 )
-from qtpy.QtCore import Slot
-from .utils import ByteIndicator
+from qtpy.QtCore import Slot, Qt
+from .utils import SquareByteIndicator
 
 
 class MotorMonitor(QWidget):
@@ -22,10 +22,13 @@ class MotorMonitor(QWidget):
             self.box = QVBoxLayout()
         self.label = QLabel(self.model.label)
         self.box.addWidget(self.label)
-        self.position = QLabel("")
+        self.position = QLabel(self.model.value)
+        print(self.model.label, self.model.value)
         self.box.addWidget(self.position)
-        self.indicator = ByteIndicator()
+        self.indicator = SquareByteIndicator()
         self.box.addWidget(self.indicator)
+        if orientation == "h":
+            self.box.setAlignment(Qt.AlignVCenter)
         self.model.valueChanged.connect(self.update_position)
         self.model.movingStatusChanged.connect(self.update_indicator)
         self.setLayout(self.box)
@@ -47,6 +50,7 @@ class MotorControl(MotorMonitor):
         self.lineEdit.returnPressed.connect(self.enter_position)
 
         self.lineEdit.setText("{:2f}".format(self.model.setpoint.get()))
+        self.model.setpointChanged.connect(self.update_sp)
         self.box.insertWidget(2, self.lineEdit)
         lbutton = QPushButton("<")
         lbutton.clicked.connect(self.tweak_left)
@@ -67,18 +71,29 @@ class MotorControl(MotorMonitor):
         step = float(self.tweakEdit.text())
         new_sp = current_sp - step
         self.model.set(new_sp)
-        self.lineEdit.setText(str(new_sp))
+        self.update_sp(new_sp)
+        # self.lineEdit.setText(str(new_sp))
 
     def tweak_right(self):
         current_sp = self.model.setpoint.get()
         step = float(self.tweakEdit.text())
         new_sp = current_sp + step
         self.model.set(new_sp)
-        self.lineEdit.setText(str(new_sp))
+        self.update_sp(new_sp)
+        # self.lineEdit.setText(str(new_sp))
+
+    def update_sp(self, value):
+        if isinstance(value, (int, float)):
+            self.lineEdit.setText("{:2f}".format(value))
+        elif isinstance(value, str):
+            self.lineEdit.setText(value)
+        else:
+            self.lineEdit.setText(str(value))
 
 
 class MotorControlCombo(QWidget):
     def __init__(self, motorModelDict, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         motorControlBox = QHBoxLayout()
         motorLabel = QLabel("Choose a Motor")
         motorDropdown = QComboBox()

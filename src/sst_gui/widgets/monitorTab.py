@@ -1,7 +1,7 @@
 from qtpy.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout
 from bluesky_widgets.qt.run_engine_client import (
-    QtReEnvironmentControls,
-    QtReManagerConnection,
+    QtReExecutionControls,
+    QtReQueueControls,
     QtReStatusMonitor,
     QtReRunningPlan,
 )
@@ -17,9 +17,9 @@ from .views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 class EnvironmentMonitor(QHBoxLayout):
     def __init__(self, run_engine, user_status, bl_control):
         super().__init__()
-        self.addWidget(QtReManagerConnection(run_engine))
         self.addWidget(QtReStatusMonitor(run_engine))
-        self.addWidget(QtReEnvironmentControls(run_engine))
+        self.addWidget(QtReQueueControls(run_engine))
+        self.addWidget(QtReExecutionControls(run_engine))
         self.addWidget(ProposalStatus(run_engine, user_status))
         self.addWidget(BLController(bl_control))
 

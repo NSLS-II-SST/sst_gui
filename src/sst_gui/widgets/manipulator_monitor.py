@@ -2,11 +2,38 @@ from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QGroupBox
 from .motor import MotorMonitor, MotorControl
 
 
-class RealManipulatorMonitor(QGroupBox):
+class RealManipulatorControl(QGroupBox):
     def __init__(self, manipulator, *args, **kwargs):
-        super().__init__(manipulator.label, *args, **kwargs)
+        super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.real_axes_models:
+            vbox.addWidget(MotorControl(m))
+        self.setLayout(vbox)
+
+
+class PseudoManipulatorControl(QGroupBox):
+    def __init__(self, manipulator, *args, **kwargs):
+        super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
+        vbox = QVBoxLayout()
+        for m in manipulator.pseudo_axes_models:
+            vbox.addWidget(MotorControl(m))
+        self.setLayout(vbox)
+
+
+class RealManipulatorMonitor(QGroupBox):
+    def __init__(self, manipulator, *args, **kwargs):
+        super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
+        vbox = QVBoxLayout()
+        for m in manipulator.real_axes_models:
+            vbox.addWidget(MotorMonitor(m))
+        self.setLayout(vbox)
+
+
+class PseudoManipulatorMonitor(QGroupBox):
+    def __init__(self, manipulator, *args, **kwargs):
+        super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
+        vbox = QVBoxLayout()
+        for m in manipulator.pseudo_axes_models:
             vbox.addWidget(MotorMonitor(m))
         self.setLayout(vbox)
 

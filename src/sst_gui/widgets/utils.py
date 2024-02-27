@@ -1,5 +1,5 @@
 from qtpy.QtWidgets import QFrame
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QWidget, QSizePolicy
 from qtpy.QtGui import QPainter, QColor
 from qtpy.QtCore import QSize
 
@@ -20,11 +20,19 @@ class ByteIndicator(QWidget):
         super().__init__(parent)
         self.color = "grey"
         self.setMinimumSize(QSize(15, 15))
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.setSizePolicy(sizePolicy)
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setBrush(QColor(self.color))
         painter.drawRect(self.rect())
+
+    def sizeHint(self):
+        """
+        Suggests an initial size for the widget.
+        """
+        return QSize(20, 20)
 
     def setColor(self, color):
         self.color = color
@@ -54,3 +62,25 @@ class ByteIndicator(QWidget):
                 painter = QPainter(self)
                 painter.setBrush(QColor(self.color))
                 painter.drawRect(self.rect())
+
+
+class SquareByteIndicator(ByteIndicator):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aspectRatio = 1
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(True)  # Enable heightForWidth
+        self.setSizePolicy(sizePolicy)
+
+    def heightForWidth(self, width):
+        """
+        Ensures the height respects the aspect ratio based on the width.
+        """
+        return int(width * self.aspectRatio)
+
+    def resizeEvent(self, event):
+        """
+        Adjusts the size while keeping the aspect ratio fixed.
+        """
+        newSize = min(self.width(), self.height())
+        self.resize(newSize, newSize)

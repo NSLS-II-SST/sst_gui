@@ -1,14 +1,12 @@
-from bluesky_widgets.apps.queue_monitor.widgets import (
-    QtRunEngineManager_Editor,
-    QtRunEngineManager_Monitor,
-)
 from qtpy.QtWidgets import QTabWidget
 
 # from .samplelist import QtSampleView
+from .widgets.queueControlTab import QueueControlTab
 from .widgets.monitorTab import MonitorTab
 from .widgets.planTab import PlanTabWidget
 from .widgets.samplelist import SampleTab
 from .widgets.motorTab import MotorTab
+from .widgets.consoleTab import IPythonConsoleTab
 
 
 class QtViewer(QTabWidget):
@@ -18,11 +16,13 @@ class QtViewer(QTabWidget):
 
         self.setTabPosition(QTabWidget.North)
 
-        self._re_manager_monitor = QtRunEngineManager_Monitor(model.run_engine)
-        self.addTab(self._re_manager_monitor, "Monitor Queue")
-        print("Added RE Monitor")
-        self._re_manager_editor = QtRunEngineManager_Editor(model.run_engine)
-        self.addTab(self._re_manager_editor, "Edit and Control Queue")
+        # self._re_manager_monitor = QtRunEngineManager_Monitor(model.run_engine)
+        # self.addTab(self._re_manager_monitor, "Monitor Queue")
+        # print("Added RE Monitor")
+        # self._re_manager_editor = QtRunEngineManager_Editor(model.run_engine)
+        # self.addTab(self._re_manager_editor, "Edit and Control Queue")
+        self._queue_control = QueueControlTab(model.run_engine)
+        self.addTab(self._queue_control, "QueueServer Control")
         print("Added RE Manager")
         self._bl_status_monitor = MonitorTab(model)
         self.addTab(self._bl_status_monitor, "Beamline Status")
@@ -39,3 +39,6 @@ class QtViewer(QTabWidget):
     _   """
         self._bl_sample_monitor = SampleTab(model)
         self.addTab(self._bl_sample_monitor, "Samples")
+        self._ipython_console = IPythonConsoleTab(model)
+        self.addTab(self._ipython_console, "IPython Console")
+        print("Added IPython Console")

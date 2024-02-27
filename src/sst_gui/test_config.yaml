@@ -24,7 +24,7 @@ energy:
   energy:
     _target_: sst_gui.loaders.energyModelFromOphyd
     label: Energy
-    prefix: energy
+    prefix: en
 gatevalves:
   _default:
     _target_: sst_gui.loaders.modelFromOphyd

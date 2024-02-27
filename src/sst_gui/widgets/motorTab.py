@@ -12,8 +12,8 @@ from .status import ProposalStatus, StatusBox, BLController
 from .utils import HLine
 from .monitors import PVMonitorVBoxLayout, PVMonitorHBoxLayout
 from .gatevalve import GVControlBox
-from .manipulator_monitor import RealManipulatorMonitor
-from .energy import EnergyMonitor
+from .manipulator_monitor import RealManipulatorControl, PseudoManipulatorControl
+from .energy import EnergyControl, EnergyMonitor
 from .views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 from .motor import MotorControlCombo
 
@@ -26,6 +26,14 @@ class MotorTab(QWidget):
         beamline = model.beamline
 
         vbox = QVBoxLayout()
-
-        vbox.addLayout(MotorControlCombo(beamline.motors))
+        vbox.addWidget(GVControlBox(beamline.shutters))
+        vbox.addWidget(MotorControlCombo(beamline.motors))
+        vbox.addWidget(EnergyControl(model))
+        hbox = QHBoxLayout()
+        print("Real Manipulator")
+        hbox.addWidget(RealManipulatorControl(beamline.manipulators["manipulator"]))
+        print("Pseudo Manipulator")
+        hbox.addWidget(PseudoManipulatorControl(beamline.manipulators["manipulator"]))
+        vbox.addLayout(hbox)
+        vbox.addStretch()
         self.setLayout(vbox)
