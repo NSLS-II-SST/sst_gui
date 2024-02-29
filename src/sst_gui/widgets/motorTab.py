@@ -24,7 +24,7 @@ class MotorTab(QWidget):
         # run_engine = model.run_engine
         # user_status = model.user_status
         beamline = model.beamline
-
+        print("Initializing Motor Control Tab")
         vbox = QVBoxLayout()
         vbox.addWidget(GVControlBox(beamline.shutters))
         vbox.addWidget(MotorControlCombo(beamline.motors))

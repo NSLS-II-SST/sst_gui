@@ -3,7 +3,7 @@ import os
 
 from bluesky_widgets.qt import gui_qt
 from .viewer import Viewer
-from .settings import SETTINGS
+from .settings import SETTINGS, get_ipython_startup_dir
 
 
 def main(argv=None):
@@ -43,9 +43,14 @@ def main(argv=None):
         "Use QSERVER_HTTP_SERVER_API_KEY environment variable to pass an API key for authorization.",
     )
     parser.add_argument(
-        "--config",
+        "--profile",
         required=True,
         help="Location of config file to load Opyhd objects from",
+    )
+    parser.add_argument(
+        "--ipython-dir",
+        default=None,
+        help="Location of the ipython dir, if different from the default",
     )
     args = parser.parse_args(argv)
 
@@ -96,7 +101,7 @@ def main(argv=None):
         SETTINGS.zmq_re_manager_control_addr = zmq_control_addr
         SETTINGS.zmq_re_manager_info_addr = zmq_info_addr
 
-    SETTINGS.config = args.config
+    SETTINGS.config_dir = get_ipython_startup_dir(args.profile, args.ipython_dir)
 
     with gui_qt("BlueSky Queue Monitor"):
         viewer = Viewer()  # noqa: 401

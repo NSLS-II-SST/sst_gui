@@ -3,6 +3,19 @@ from .motor import MotorMonitor, MotorControl
 
 
 class RealManipulatorControl(QGroupBox):
+    """
+    Displays a group of real axis controls for a manipulator.
+
+    Parameters
+    ----------
+    manipulator : object
+        The manipulator model to display the real axis controls for.
+    *args
+        Variable length argument list.
+    **kwargs
+        Arbitrary keyword arguments.
+    """
+
     def __init__(self, manipulator, *args, **kwargs):
         super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
         vbox = QVBoxLayout()
@@ -16,6 +29,7 @@ class PseudoManipulatorControl(QGroupBox):
         super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.pseudo_axes_models:
+            print(f"Adding {m.label} to PseudoManipulatorControl")
             vbox.addWidget(MotorControl(m))
         self.setLayout(vbox)
 

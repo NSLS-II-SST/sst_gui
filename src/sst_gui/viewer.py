@@ -48,7 +48,7 @@ class ViewerModel:
             http_server_api_key=SETTINGS.http_server_api_key,
         )
         self.user_status = UserStatus(self.run_engine)
-        self.beamline = BeamlineModel(SETTINGS.config)
+        self.beamline = BeamlineModel()
 
 
 class Viewer(ViewerModel):

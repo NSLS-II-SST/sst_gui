@@ -4,7 +4,9 @@ from qtpy.QtWidgets import QWidget
 from bluesky_queueserver_api import BFunc
 import time
 from sst_funcs.configuration import instantiateGroup
-import yaml
+from .settings import SETTINGS
+from os.path import join
+from .autoconf import load_device_config
 
 # loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
@@ -88,15 +90,14 @@ class UserStatus(QObject):
 
 
 class BeamlineModel:
-    def __init__(self, config_file):
-        with open(config_file, "r") as file:
-            config = yaml.safe_load(file)
+    def __init__(self):
+
+        config_file = join(SETTINGS.config_dir, "device_config.yaml")
+        config = load_device_config(config_file)
         for key in config.keys():
             print(f"Loading {key} in BeamlineModel")
-            setattr(self, key, instantiateGroup(key, filename=config_file))
-        self.energy["energy"].energy.rotation_motor = self.manipulators[
-            "manipulator"
-        ].obj.r
+            setattr(self, key, instantiateGroup(key, config=config))
+        self.energy["en"].energy.rotation_motor = self.manipulators["manipulator"].obj.r
         print("Finished loading BeamlineModel")
 
 
@@ -279,6 +280,7 @@ class PVPositionerModel(PVModel):
 
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
+        print("Initializing PVPositionerModel")
         if hasattr(self.obj, "user_setpoint"):
             self.setpoint = self.obj.user_setpoint
         elif hasattr(self.obj, "setpoint"):
@@ -292,12 +294,14 @@ class PVPositionerModel(PVModel):
         self.checkSelfTimer.timeout.connect(self._check_self)
         # Start the timer
         self.checkSelfTimer.start()
+        print("Done Initializing")
 
     def _check_self(self):
         new_sp = self.setpoint.get()
+        # print(self.label, new_sp, type(new_sp))
+
         if new_sp != self._setpoint:
             self._setpoint = new_sp
-            print(self.label, new_sp, type(new_sp))
             self.setpointChanged.emit(self._setpoint)
         moving = self.obj.moving
         if moving != self._moving:
@@ -305,6 +309,7 @@ class PVPositionerModel(PVModel):
             self._moving = moving
 
     def set(self, value):
+        # print("Setting {self.name} to {value}")
         self.obj.set(value)
 
 

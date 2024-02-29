@@ -33,7 +33,7 @@ class MonitorTab(QWidget):
         vbox = QVBoxLayout()
         print("Adding Environment Monitor")
         statusDisplay = EnvironmentMonitor(
-            run_engine, user_status, beamline.beamline_control["sst_control"]
+            run_engine, user_status, beamline.signals["sst_control"]
         )
 
         vbox.addLayout(statusDisplay)
