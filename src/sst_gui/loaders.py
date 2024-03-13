@@ -12,14 +12,12 @@ from .models import (
     PVPositionerModel,
 )
 from .settings import SETTINGS
-from os.path import join
 
 # SST_CONFIG = pkg_resources.resource_filename("ucal", "sim_config.yaml")
-SST_CONFIG = join(SETTINGS.config_dir, "device_config.yaml")
 
 
 def modelFromOphyd(prefix, group=None, label=None, modelClass=BaseModel, **kwargs):
-    obj = findAndLoadDevice(prefix, config=SST_CONFIG)
+    obj = findAndLoadDevice(prefix, config=SETTINGS.object_config)
     name = obj.name
     if label is None:
         label = getattr(obj, "display_name", name)
@@ -54,7 +52,7 @@ def controlFromOphyd(prefix, group=None, label=None, requester=None, **kwargs):
 
 
 def energyModelFromOphyd(prefix, group=None, label=None, **kwargs):
-    energy = findAndLoadDevice(prefix, config=SST_CONFIG)
+    energy = findAndLoadDevice(prefix, config=SETTINGS.object_config)
     name = energy.name
     energy_motor = PVPositionerModel(
         name=energy.monoen.name,

@@ -16,7 +16,7 @@ class RealManipulatorControl(QGroupBox):
         Arbitrary keyword arguments.
     """
 
-    def __init__(self, manipulator, *args, **kwargs):
+    def __init__(self, manipulator, *args, orientation=None, **kwargs):
         super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.real_axes_models:
@@ -25,7 +25,7 @@ class RealManipulatorControl(QGroupBox):
 
 
 class PseudoManipulatorControl(QGroupBox):
-    def __init__(self, manipulator, *args, **kwargs):
+    def __init__(self, manipulator, *args, orientation=None, **kwargs):
         super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.pseudo_axes_models:
@@ -35,7 +35,7 @@ class PseudoManipulatorControl(QGroupBox):
 
 
 class RealManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, **kwargs):
+    def __init__(self, manipulator, *args, orientation=None, **kwargs):
         super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.real_axes_models:
@@ -44,7 +44,7 @@ class RealManipulatorMonitor(QGroupBox):
 
 
 class PseudoManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, **kwargs):
+    def __init__(self, manipulator, *args, orientation=None, **kwargs):
         super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.pseudo_axes_models:
@@ -53,7 +53,7 @@ class PseudoManipulatorMonitor(QGroupBox):
 
 
 class ManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, **kwargs):
+    def __init__(self, manipulator, *args, orientation=None, **kwargs):
         super().__init__("Manipulator", *args, **kwargs)
         hbox = QHBoxLayout()
         vbox1 = QVBoxLayout()

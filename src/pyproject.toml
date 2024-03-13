@@ -21,3 +21,16 @@ sst-gui-test = "sst_gui.testScaffolding:main"
 sst-edit-config = "sst_gui.confEdit:main"
 
 [project.optional-dependencies]
+
+[project.entry-points."sst_gui.plans"]
+sst-gui-scan = "sst_gui.plans.scanPlan:ScanPlanWidget"
+sst-gui-move = "sst_gui.plans.movePlan:MovePlanWidget"
+sst-gui-xas = "sst_gui.plans.xasPlan:XASPlanWidget"
+
+[project.entry-points."sst_gui.tabs"]
+sst-gui-plans = "sst_gui.tabs.newPlanTab:PlanTabWidget"
+sst-gui-motors = "sst_gui.tabs.motorTab:MotorTab"
+sst-gui-queue = "sst_gui.tabs.queueControlTab:QueueControlTab"
+sst-gui-console = "sst_gui.tabs.consoleTab:IPythonConsoleTab"
+sst-gui-samples = "sst_gui.widgets.samplelist:SampleTab"
+sst-gui-monitor = "sst_gui.tabs.monitorTab:MonitorTab"

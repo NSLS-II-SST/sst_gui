@@ -3,7 +3,8 @@ from bluesky_widgets.apps.queue_monitor.widgets import (
     QtRunEngineManager_Monitor,
 )
 from qtpy.QtWidgets import QTabWidget
-from .widgets.monitorTab import MonitorTab
+from .tabs.monitorTab import MonitorTab
+
 
 class QtViewer(QTabWidget):
     def __init__(self, model, *args, **kwargs):
@@ -21,8 +22,8 @@ class QtViewer(QTabWidget):
         self._bl_status_monitor = MonitorTab(model)
         self.addTab(self._bl_status_monitor, "Beamline Status")
 
-        #self._bl_interactive = InteractiveTab(model)
-        #self.addTab(self._bl_interactive, "Beamline Control")
+        # self._bl_interactive = InteractiveTab(model)
+        # self.addTab(self._bl_interactive, "Beamline Control")
 
-        #self._bl_sample_monitor = QtSampleView(model.user_status)
-        #self.addTab(self._bl_sample_monitor, "Samples")
+        # self._bl_sample_monitor = QtSampleView(model.user_status)
+        # self.addTab(self._bl_sample_monitor, "Samples")

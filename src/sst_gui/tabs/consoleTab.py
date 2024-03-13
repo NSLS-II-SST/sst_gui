@@ -34,6 +34,8 @@ class IPythonConsoleTab(QWidget):
         Client for interacting with the kernel.
     """
 
+    name = "IPython Console"
+
     def __init__(self, kernel_file=None):
         """
         Initializes the IPythonConsoleTab widget, setting up the IPython console,

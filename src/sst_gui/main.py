@@ -1,5 +1,6 @@
 import argparse
 import os
+from os.path import join, dirname
 
 from bluesky_widgets.qt import gui_qt
 from .viewer import Viewer
@@ -101,8 +102,9 @@ def main(argv=None):
         SETTINGS.zmq_re_manager_control_addr = zmq_control_addr
         SETTINGS.zmq_re_manager_info_addr = zmq_info_addr
 
-    SETTINGS.config_dir = get_ipython_startup_dir(args.profile, args.ipython_dir)
-
+    profile_dir = get_ipython_startup_dir(args.profile, args.ipython_dir)
+    SETTINGS.object_config = join(profile_dir, "device_config.yaml")
+    SETTINGS.gui_config = join(profile_dir, "gui_config.toml")
     with gui_qt("BlueSky Queue Monitor"):
         viewer = Viewer()  # noqa: 401
 

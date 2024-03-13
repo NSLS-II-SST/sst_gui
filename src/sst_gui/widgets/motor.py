@@ -13,7 +13,7 @@ from .utils import SquareByteIndicator
 
 
 class MotorMonitor(QWidget):
-    def __init__(self, model, orientation="h", *args, **kwargs):
+    def __init__(self, model, parent_model, orientation="h", *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.model = model
         if orientation == "h":
@@ -89,20 +89,3 @@ class MotorControl(MotorMonitor):
             self.lineEdit.setText(value)
         else:
             self.lineEdit.setText(str(value))
-
-
-class MotorControlCombo(QWidget):
-    def __init__(self, motorModelDict, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        motorControlBox = QHBoxLayout()
-        motorLabel = QLabel("Choose a Motor")
-        motorDropdown = QComboBox()
-        motorStack = QStackedWidget()
-        for key, motor in motorModelDict.items():
-            motorDropdown.addItem(key)
-            motorStack.addWidget(MotorControl(motor))
-        motorDropdown.currentIndexChanged.connect(motorStack.setCurrentIndex)
-        motorControlBox.addWidget(motorLabel)
-        motorControlBox.addWidget(motorDropdown)
-        motorControlBox.addWidget(motorStack)
-        self.setLayout(motorControlBox)

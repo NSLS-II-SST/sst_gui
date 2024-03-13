@@ -11,6 +11,8 @@ from bluesky_queueserver_api import BFunc
 
 
 class SampleTab(QWidget):
+    name = "Samples"
+
     def __init__(self, model, parent=None):
         super().__init__(parent)
         self.layout = QVBoxLayout(self)

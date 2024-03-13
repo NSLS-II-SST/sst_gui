@@ -1,18 +1,4 @@
-from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QHBoxLayout
-
-
-class PVMonitorVBoxLayout(QVBoxLayout):
-    def __init__(self, modeldict):
-        super().__init__()
-        for model in modeldict.values():
-            self.addWidget(PVMonitor(model, "h"))
-
-
-class PVMonitorHBoxLayout(QHBoxLayout):
-    def __init__(self, modeldict):
-        super().__init__()
-        for model in modeldict.values():
-            self.addWidget(PVMonitor(model, "v"))
+from qtpy.QtWidgets import QVBoxLayout, QWidget, QLabel, QHBoxLayout
 
 
 class PVMonitor(QWidget):
@@ -20,7 +6,7 @@ class PVMonitor(QWidget):
     Monitor a generic PV
     """
 
-    def __init__(self, model, orientation="v", **kwargs):
+    def __init__(self, model, parent_model, orientation="v", **kwargs):
         super().__init__(**kwargs)
         self.model = model
         if orientation == "v":

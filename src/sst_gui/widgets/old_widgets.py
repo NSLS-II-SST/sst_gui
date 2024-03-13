@@ -23,7 +23,7 @@ from sst_funcs.configuration import findAndLoadDevice, getObjConfig
 from .layout import FlowLayout
 from ..models import energyModelFromOphyd, gvFromOphyd, motorFromOphyd
 from .samplelist import QtSampleView
-from .monitorTab import MonitorTab
+from ..tabs.monitorTab import MonitorTab
 
 # from typhos.plugins import register_signal, SignalPlugin
 # from typhos import TyphosPositionerWidget

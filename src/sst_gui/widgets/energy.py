@@ -2,7 +2,6 @@ from qtpy.QtWidgets import (
     QGroupBox,
     QVBoxLayout,
     QHBoxLayout,
-    QLabel,
     QComboBox,
     QPushButton,
     QMessageBox,
@@ -17,37 +16,36 @@ class EnergyMonitor(QGroupBox):
     Display an Energy Model that has energy, gap, and phase
     """
 
-    def __init__(self, energyModel, slitModel, *args, **kwargs):
+    def __init__(self, energy, parent_model, *args, orientation=None, **kwargs):
         super().__init__("Energy Monitor", *args, **kwargs)
         vbox = QVBoxLayout()
-        if isinstance(energyModel, dict):
-            print("It's a dictionary!")
-            for model in energyModel.values():
-                vbox.addWidget(MotorMonitor(model.energy_motor))
-                vbox.addWidget(MotorMonitor(model.gap_motor))
-                vbox.addWidget(MotorMonitor(model.phase_motor))
-                vbox.addWidget(MotorMonitor(slitModel))
-                vbox.addWidget(MotorMonitor(model.grating_motor))
+        vbox.addWidget(MotorMonitor(energy.energy_motor, parent_model))
+        vbox.addWidget(MotorMonitor(energy.gap_motor, parent_model))
+        vbox.addWidget(MotorMonitor(energy.phase_motor, parent_model))
+        vbox.addWidget(
+            MotorMonitor(parent_model.beamline.motors["Exit_Slit"], parent_model)
+        )
+        vbox.addWidget(MotorMonitor(energy.grating_motor, parent_model))
         self.setLayout(vbox)
 
 
 class EnergyControl(QGroupBox):
-    def __init__(self, model, *args, **kwargs):
+    def __init__(self, energy, parent_model, *args, orientation=None, **kwargs):
         super().__init__("Energy Control", *args, **kwargs)
-        energy = model.beamline.energy
-        if isinstance(energy, dict):
-            energy = list(energy.values())[0]
+
         print(energy)
-        self.REClientModel = model.run_engine
+        self.REClientModel = parent_model.run_engine
         print("Creating Energy Control Vbox")
         vbox = QVBoxLayout()
         print("Creating Energy Motor")
-        vbox.addWidget(MotorControl(energy.energy_motor))
+        vbox.addWidget(MotorControl(energy.energy_motor, parent_model))
         print("Creating Exit Slit")
-        vbox.addWidget(MotorControl(model.beamline.motors["Exit_Slit"]))
+        vbox.addWidget(
+            MotorControl(parent_model.beamline.motors["Exit_Slit"], parent_model)
+        )
         print("Making hbox")
         hbox = QHBoxLayout()
-        hbox.addWidget(MotorMonitor(energy.grating_motor))
+        hbox.addWidget(MotorMonitor(energy.grating_motor, parent_model))
         print("Making ComboBox")
         cb = QComboBox()
         self.cb = cb

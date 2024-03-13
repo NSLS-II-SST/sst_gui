@@ -5,8 +5,11 @@ from bluesky_queueserver_api import BFunc
 import time
 from sst_funcs.configuration import instantiateGroup
 from .settings import SETTINGS
-from os.path import join
 from .autoconf import load_device_config
+from .widgets.motor import MotorControl, MotorMonitor
+from .widgets.monitors import PVMonitor
+from .widgets.gatevalve import GVControl, GVMonitor
+from .widgets.energy import EnergyControl, EnergyMonitor
 
 # loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
@@ -92,18 +95,30 @@ class UserStatus(QObject):
 class BeamlineModel:
     def __init__(self):
 
-        config_file = join(SETTINGS.config_dir, "device_config.yaml")
-        config = load_device_config(config_file)
+        config = load_device_config(SETTINGS.object_config)
         for key in config.keys():
             print(f"Loading {key} in BeamlineModel")
             setattr(self, key, instantiateGroup(key, config=config))
+        ekeys = list(self.energy.keys())
+        if len(ekeys) == 1:
+            self.primary_energy = self.energy[ekeys[0]]
+        else:
+            # Temporary until we can work out the config file
+            self.primary_energy = self.energy[ekeys[0]]
+        mkeys = list(self.manipulators.keys())
+        if len(mkeys) == 1:
+            self.primary_manipulator = self.manipulators[mkeys[0]]
+        else:
+            # Temporary until we can work out the config file
+            self.primary_manipulator = self.manipulators["manipulator"]
+        # Can we make an energy-builder that side-steps the need for this?
         self.energy["en"].energy.rotation_motor = self.manipulators["manipulator"].obj.r
         print("Finished loading BeamlineModel")
 
 
 class EnergyModel:
-    default_controller = "EnergyControl"
-    default_monitor = "EnergyMonitor"
+    default_controller = EnergyControl
+    default_monitor = EnergyMonitor
 
     def __init__(
         self,
@@ -131,7 +146,7 @@ class EnergyModel:
 
 class BaseModel(QWidget):
     default_controller = None
-    default_monitor = "PVMonitor"
+    default_monitor = PVMonitor
 
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__()
@@ -145,8 +160,8 @@ class BaseModel(QWidget):
 
 
 class GVModel(BaseModel):
-    default_controller = "GVControl"
-    default_monitor = "GVMonitor"
+    default_controller = GVControl
+    default_monitor = GVMonitor
     gvStatusChanged = Signal(str)
 
     def __init__(self, name, obj, group, label, **kwargs):
@@ -232,8 +247,8 @@ class ScalarModel(BaseModel):
 
 
 class MotorModel(PVModel):
-    default_controller = "MotorControl"
-    default_monitor = "MotorMonitor"
+    default_controller = MotorControl
+    default_monitor = MotorMonitor
     movingStatusChanged = Signal(bool)
     setpointChanged = Signal(object)
 
@@ -273,8 +288,8 @@ class MotorModel(PVModel):
 
 
 class PVPositionerModel(PVModel):
-    default_controller = "MotorControl"
-    default_monitor = "MotorMonitor"
+    default_controller = MotorControl
+    default_monitor = MotorMonitor
     movingStatusChanged = Signal(bool)
     setpointChanged = Signal(object)
 

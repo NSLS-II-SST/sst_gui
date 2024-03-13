@@ -5,18 +5,18 @@ from .widgets.monitors import PVMonitorVBoxLayout
 from .widgets.manipulator_monitor import RealManipulatorMonitor
 from .widgets.energy import EnergyMonitor
 from .widgets.views import AutoMonitorBox, AutoMonitor, AutoControl, AutoControlBox
-from .widgets.planTab import PlanSubmissionWidget
+from .tabs.newPlanTab import PlanTabWidget
 
 
 def main():
     app = QApplication([])
-    beamline = BeamlineModel(
-        "/home/jamie/work/visualization/sst_gui/sst_gui/test_config.yaml"
-    )
+    # beamline = BeamlineModel(
+    #    "/home/jamie/work/visualization/sst_gui/sst_gui/test_config.yaml"
+    # )
 
     layout = QVBoxLayout()
     # layout.addWidget(QLabel("Testing"))
-    layout.addWidget(PlanSubmissionWidget())
+    layout.addWidget(PlanTabWidget(None))
 
     main_window = QMainWindow()
     central_widget = QWidget()
