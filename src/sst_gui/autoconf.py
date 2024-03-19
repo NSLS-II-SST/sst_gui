@@ -1,4 +1,5 @@
 import yaml
+import toml
 
 
 def apply_default_values(data):
@@ -121,7 +122,6 @@ def convert_config(config_dict, translation_updates={}, default_target=None):
         "ManipulatorBuilder": "sst_gui.loaders.manipulatorFromOphyd",
         "ADCBuffer": "sst_gui.loaders.scalarFromOphyd",
         "PrettyMotor": "sst_gui.loaders.motorFromOphyd",
-        "NewEnPos": "sst_gui.loaders.energyModelFromOphyd",
         "StandardProsilicaV33": "sst_gui.loaders.pvFromOphyd",
         "MultiMeshBuilder": "sst_gui.loaders.manipulatorFromOphyd",
     }
@@ -132,10 +132,24 @@ def convert_config(config_dict, translation_updates={}, default_target=None):
     return new_config
 
 
-def load_device_config(input_filename, translation_updates={}, default_target=None):
-    with open(input_filename, "r") as f:
-        config = yaml.safe_load(f)
-    return convert_config(config, translation_updates, default_target)
+def load_device_config(
+    device_file, gui_file=None, translation_updates={}, default_target=None
+):
+    with open(device_file, "r") as f:
+        device_config = yaml.safe_load(f)
+    if gui_file is not None:
+        with open(gui_file, "r") as f:
+            gui_config = toml.load(f)
+    else:
+        gui_config = {}
+    translation_updates.update(gui_config.get("loaders", {}))
+    new_dev_config = convert_config(device_config, translation_updates, default_target)
+    update_devices = gui_config.get("devices", {})
+    for key, section in new_dev_config.items():
+        update_section = update_devices.get(key, {})
+        for dkey, device in section.items():
+            device.update(update_section.get(dkey, {}))
+    return new_dev_config
 
 
 def main():

@@ -5,11 +5,6 @@ from qtpy.QtWidgets import (
 )
 
 from ..widgets.views import AutoControlBox, AutoControlCombo, AutoControl
-from ..widgets.manipulator_monitor import (
-    RealManipulatorControl,
-    PseudoManipulatorControl,
-)
-from ..widgets.energy import EnergyControl
 import time
 
 

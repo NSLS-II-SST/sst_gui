@@ -5,10 +5,14 @@ from qtpy.QtWidgets import (
     QWidget,
     QSizePolicy,
     QPushButton,
-    QLineEdit,
+    QLabel,
 )
+from qtpy.QtCore import Signal, Slot
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.manager import QtKernelManager
+from bluesky_widgets.qt.run_engine_client import (
+    QtReStatusMonitor,
+)
 import sys
 import argparse
 import subprocess
@@ -35,36 +39,63 @@ class IPythonConsoleTab(QWidget):
     """
 
     name = "IPython Console"
+    signal_update_widget = Signal(object)
 
-    def __init__(self, kernel_file=None):
+    def __init__(self, model, kernel_file=None):
         """
         Initializes the IPythonConsoleTab widget, setting up the IPython console,
         kernel manager, and kernel client, and connecting them together.
         """
         super().__init__()
+        self.kernel_label = QLabel("Kernel Status: Not Connected")
+        self.REClientModel = model.run_engine
+        self.REClientModel.events.status_changed.connect(self.on_update_widgets)
+        self.signal_update_widget.connect(self.slot_update_widgets)
+
         self.kernel_file = kernel_file
 
         vbox = QVBoxLayout(self)
-
+        vbox.addWidget(self.kernel_label)
         # Create the IPython console widget but do not initialize it yet
         self.console = RichJupyterWidget()
         self.console.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.console._append_html(
+            "<i>Connect to Kernel by hitting the button when the kernel status is idle</i>"
+        )
         vbox.addWidget(self.console)
 
         # Create a QLineEdit for inputting a file path
-        self.filePathLineEdit = QLineEdit()
-        self.filePathLineEdit.setPlaceholderText("Enter kernel connection file path")
-        vbox.addWidget(self.filePathLineEdit)
+        # self.filePathLineEdit = QLineEdit()
+        # self.filePathLineEdit.setPlaceholderText("Enter kernel connection file path")
+        # vbox.addWidget(self.filePathLineEdit)
 
         # Create a button to connect to the kernel
         self.connectButton = QPushButton("Connect to Kernel")
         vbox.addWidget(self.connectButton)
         self.connectButton.clicked.connect(self.connect_to_kernel)
+        self.connectButton.setEnabled(False)
+        vbox.addWidget(QtReStatusMonitor(self.REClientModel))
 
-        self.runCodeButton = QPushButton("Run Hello World")
-        self.runCodeButton.clicked.connect(self.run_hello_world)
-        vbox.addWidget(self.runCodeButton)
+        # self.runCodeButton = QPushButton("Run Hello World")
+        # self.runCodeButton.clicked.connect(self.run_hello_world)
+        # vbox.addWidget(self.runCodeButton)
         self.setLayout(vbox)
+
+    def on_update_widgets(self, event):
+        status = event.status
+        self.signal_update_widget.emit(status)
+
+    @Slot(object)
+    def slot_update_widgets(self, status):
+        kernel_state = status.get("ip_kernel_state", None)
+        if kernel_state is not None:
+            self.kernel_label.setText(f"Kernel State: {kernel_state}")
+        else:
+            self.kernel_label.setText("Kernel State: Not Connected")
+        if kernel_state in ["idle", "busy"] and not self.is_console_connected():
+            self.connectButton.setEnabled(True)
+        else:
+            self.connectButton.setEnabled(False)
 
     def connect_to_kernel(self):
         """
@@ -72,8 +103,10 @@ class IPythonConsoleTab(QWidget):
         Prioritizes the file path from the QLineEdit if provided.
         """
         # Use the file path from the QLineEdit if provided, otherwise use the initial kernel_file
-        kernel_file = self.filePathLineEdit.text().strip() or self.kernel_file
-
+        msg = self.REClientModel._client.config_get()
+        connect_info = msg["config"]["ip_connect_info"]
+        # kernel_file = self.filePathLineEdit.text().strip() or self.kernel_file
+        """
         if kernel_file:
             self.kernel_manager = QtKernelManager(connection_file=kernel_file)
             self.kernel_manager.load_connection_file()
@@ -81,7 +114,9 @@ class IPythonConsoleTab(QWidget):
             # Start a new kernel if no connection file was provided
             self.kernel_manager = QtKernelManager()
             self.kernel_manager.start_kernel()
-
+        """
+        self.kernel_manager = QtKernelManager()
+        self.kernel_manager.load_connection_info(connect_info)
         self.kernel_client = self.kernel_manager.client()
         self.kernel_client.start_channels()
 
@@ -90,7 +125,7 @@ class IPythonConsoleTab(QWidget):
         self.console.kernel_client = self.kernel_client
 
         # Optionally, disable the button after connecting
-        self.connectButton.setEnabled(False)
+        # self.connectButton.setEnabled(False)
 
     def run_hello_world(self):
         """
@@ -99,6 +134,12 @@ class IPythonConsoleTab(QWidget):
         code = 'print("hello world")'
         # Execute the code in the IPython kernel
         self.console.execute(code)
+
+    def is_console_connected(self):
+        if self.console.kernel_client and self.console.kernel_client.is_alive():
+            return True
+        else:
+            return False
 
 
 class MainApplicationWindow(QMainWindow):

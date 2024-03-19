@@ -11,6 +11,7 @@ class QtViewer(QTabWidget):
         self.model = model
 
         self.setTabPosition(QTabWidget.North)
+        self.setMovable(True)
 
         if exists(SETTINGS.gui_config):
             with open(SETTINGS.gui_config, "r") as config_file:

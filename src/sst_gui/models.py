@@ -95,7 +95,7 @@ class UserStatus(QObject):
 class BeamlineModel:
     def __init__(self):
 
-        config = load_device_config(SETTINGS.object_config)
+        config = load_device_config(SETTINGS.object_config, SETTINGS.gui_config)
         for key in config.keys():
             print(f"Loading {key} in BeamlineModel")
             setattr(self, key, instantiateGroup(key, config=config))
