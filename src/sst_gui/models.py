@@ -2,6 +2,8 @@ from bluesky_widgets.qt.threading import FunctionWorker
 from qtpy.QtCore import QObject, Signal, QTimer
 from qtpy.QtWidgets import QWidget
 from bluesky_queueserver_api import BFunc
+from ophyd.signal import ConnectionTimeoutError
+from ophyd.utils.errors import DisconnectedError
 import time
 from sst_funcs.configuration import instantiateGroup
 from .settings import SETTINGS
@@ -167,6 +169,7 @@ class GVModel(BaseModel):
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
         self.obj.state.subscribe(self._status_change, run=True)
+        timer = QTimer.singleShot(5000, self._check_status)
 
     def open(self):
         self.obj.open_nonplan()
@@ -174,6 +177,14 @@ class GVModel(BaseModel):
     def close(self):
         self.obj.close_nonplan()
 
+    def _check_status(self):
+        try:
+            status = self.obj.state.get(connection_timeout=0.2, timeout=0.2)
+            self._status_change(status)
+            QTimer.singleShot(100000, self._check_status)
+        except:
+            QTimer.singleShot(10000, self._check_status)
+            
     def _status_change(self, value, **kwargs):
         if value == self.obj.openval:
             self.gvStatusChanged.emit("open")
@@ -189,6 +200,16 @@ class PVModelRO(BaseModel):
         self.value_type = None
         self._value = "Disconnected"
         self.obj.subscribe(self._value_changed, run=True)
+        timer = QTimer.singleShot(5000, self._check_value)
+
+    def _check_value(self):
+        try:
+            value = self.obj.get(connection_timeout=0.2, timeout=0.2)
+            self._value_changed(value)
+            QTimer.singleShot(100000, self._check_value)
+        except:
+            QTimer.singleShot(10000, self._check_value)
+
 
     def _value_changed(self, value, **kwargs):
         if self.value_type is None:
@@ -215,6 +236,7 @@ class PVModelRO(BaseModel):
 
 
 class PVModel(PVModelRO):
+    # Need to make this more robust!
     def set(self, val):
         self.obj.set(val).wait()
 
@@ -226,6 +248,15 @@ class ScalarModel(BaseModel):
         super().__init__(name, obj, group, label, **kwargs)
         self.value_type = None
         self.obj.target.subscribe(self._value_changed, run=True)
+        timer = QTimer.singleShot(5000, self._check_value)
+
+    def _check_value(self):
+        try:
+            value = self.obj.get(connection_timeout=0.2, timeout=0.2)
+            self._value_changed(value)
+            QTimer.singleShot(100000, self._check_value)
+        except:
+            QTimer.singleShot(10000, self._check_value)
 
     def _value_changed(self, value, **kwargs):
         if self.value_type is None:
@@ -256,11 +287,11 @@ class MotorModel(PVModel):
         super().__init__(name, obj, group, label, **kwargs)
         self.obj.motor_is_moving.subscribe(self._update_moving_status)
         if hasattr(self.obj, "user_setpoint"):
-            self.setpoint = self.obj.user_setpoint
+            self._obj_setpoint = self.obj.user_setpoint
         elif hasattr(self.obj, "setpoint"):
-            self.setpoint = self.obj.setpoint
+            self._obj_setpoint = self.obj.setpoint
         else:
-            self.setpoint = self.obj
+            self._obj_setpoint = self.obj
         self._setpoint = 0
         self.checkSelfTimer = QTimer(self)
         self.checkSelfTimer.setInterval(500)
@@ -271,11 +302,21 @@ class MotorModel(PVModel):
         self.movingStatusChanged.emit(value)
 
     def _check_self(self):
-        new_sp = self.setpoint.get()
+        try:
+            new_sp = self._obj_setpoint.get(connection_timeout=0.2)
+            self.checkSelfTimer.setInterval(500)
+        except (ConnectionTimeoutError, DisconnectedError) as e:
+            print(f"{e} in {self.label}")
+            self.checkSelfTimer.setInterval(8000)
+            return
         if new_sp != self._setpoint:
             self._setpoint = new_sp
             self.setpointChanged.emit(self._setpoint)
 
+    @property
+    def setpoint(self):
+        return self._setpoint
+            
     @property
     def position(self):
         try:
@@ -284,7 +325,7 @@ class MotorModel(PVModel):
             return 0
 
     def set(self, value):
-        self.setpoint.set(value).wait()
+        self._obj_setpoint.set(value).wait()
 
 
 class PVPositionerModel(PVModel):
@@ -297,11 +338,11 @@ class PVPositionerModel(PVModel):
         super().__init__(name, obj, group, label, **kwargs)
         print("Initializing PVPositionerModel")
         if hasattr(self.obj, "user_setpoint"):
-            self.setpoint = self.obj.user_setpoint
+            self._obj_setpoint = self.obj.user_setpoint
         elif hasattr(self.obj, "setpoint"):
-            self.setpoint = self.obj.setpoint
+            self._obj_setpoint = self.obj.setpoint
         else:
-            self.setpoint = self.obj
+            self._obj_setpoint = self.obj
         self._setpoint = 0
         self._moving = False
         self.checkSelfTimer = QTimer(self)
@@ -312,17 +353,36 @@ class PVPositionerModel(PVModel):
         print("Done Initializing")
 
     def _check_self(self):
-        new_sp = self.setpoint.get()
+        # Timeout errors self-explanatory. TypeErrors occur when a pseudopositioner times out and
+        # tries to do an inverse calculation anyway
+        try:
+            new_sp = self._obj_setpoint.get(connection_timeout=0.2)
+            self.checkSelfTimer.setInterval(500)
+        except (ConnectionTimeoutError, TypeError, DisconnectedError) as e:
+            print(f"{e} in {self.label}")
+            self.checkSelfTimer.setInterval(8000)
+            return
         # print(self.label, new_sp, type(new_sp))
 
         if new_sp != self._setpoint:
             self._setpoint = new_sp
             self.setpointChanged.emit(self._setpoint)
-        moving = self.obj.moving
+        try:
+            moving = self.obj.moving
+            self.checkSelfTimer.setInterval(500)
+        except (ConnectionTimeoutError, DisconnectedError) as e:
+            print(f"{e} in {self.label} moving")
+            self.checkSelfTimer.setInterval(8000)
+            return
+        
         if moving != self._moving:
             self.movingStatusChanged.emit(moving)
             self._moving = moving
 
+    @property
+    def setpoint(self):
+        return self._setpoint
+    
     def set(self, value):
         # print("Setting {self.name} to {value}")
         self.obj.set(value)

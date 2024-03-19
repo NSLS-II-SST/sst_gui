@@ -41,7 +41,7 @@ class MonitorTab(QWidget):
         beamBox = QHBoxLayout()
         print("Creating Beamline signals box")
 
-        beamBox.addWidget(AutoMonitorBox(beamline.signals, "Ring Signals", model))
+        beamBox.addWidget(AutoMonitorBox(beamline.signals, "Ring Signals", model, orientation='v'))
         print("Beamline signals box added")
 
         print("Beamline shutters box")

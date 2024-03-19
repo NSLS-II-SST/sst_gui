@@ -49,7 +49,7 @@ class MotorControl(MotorMonitor):
         self.lineEdit = QLineEdit()
         self.lineEdit.returnPressed.connect(self.enter_position)
 
-        self.lineEdit.setText("{:2f}".format(self.model.setpoint.get()))
+        self.lineEdit.setText("{:2f}".format(self.model.setpoint))
         self.model.setpointChanged.connect(self.update_sp)
         self.box.insertWidget(2, self.lineEdit)
         lbutton = QPushButton("<")
@@ -67,7 +67,7 @@ class MotorControl(MotorMonitor):
         self.model.set(newpos)
 
     def tweak_left(self):
-        current_sp = self.model.setpoint.get()
+        current_sp = self.model.setpoint
         step = float(self.tweakEdit.text())
         new_sp = current_sp - step
         self.model.set(new_sp)
@@ -75,7 +75,7 @@ class MotorControl(MotorMonitor):
         # self.lineEdit.setText(str(new_sp))
 
     def tweak_right(self):
-        current_sp = self.model.setpoint.get()
+        current_sp = self.model.setpoint
         step = float(self.tweakEdit.text())
         new_sp = current_sp + step
         self.model.set(new_sp)
