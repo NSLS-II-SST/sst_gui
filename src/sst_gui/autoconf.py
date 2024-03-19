@@ -145,10 +145,18 @@ def load_device_config(
     translation_updates.update(gui_config.get("loaders", {}))
     new_dev_config = convert_config(device_config, translation_updates, default_target)
     update_devices = gui_config.get("devices", {})
-    for key, section in new_dev_config.items():
+    for key in list(new_dev_config.keys()):
         update_section = update_devices.get(key, {})
-        for dkey, device in section.items():
-            device.update(update_section.get(dkey, {}))
+        if update_section.get('exclude', False):
+            new_dev_config.pop(key)
+        else:
+            section = new_dev_config[key]
+            for dkey in list(section.keys()):
+                if update_section.get(dkey, {}).get('exclude', False):
+                    section.pop(dkey, None)
+                    continue
+                else:
+                    section[dkey].update(update_section.get(dkey, {}))
     return new_dev_config
 
 
