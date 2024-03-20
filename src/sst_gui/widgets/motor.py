@@ -47,20 +47,23 @@ class MotorControl(MotorMonitor):
     def __init__(self, model, *args, **kwargs):
         super().__init__(model, *args, **kwargs)
         self.lineEdit = QLineEdit()
-        self.lineEdit.returnPressed.connect(self.enter_position)
+        # self.lineEdit.returnPressed.connect(self.enter_position)
 
         self.lineEdit.setText("{:2f}".format(self.model.setpoint))
         self.model.setpointChanged.connect(self.update_sp)
         self.box.insertWidget(2, self.lineEdit)
+        gobutton = QPushButton("Move")
+        gobutton.clicked.connect(self.enter_position)
         lbutton = QPushButton("<")
         lbutton.clicked.connect(self.tweak_left)
         self.tweakEdit = QLineEdit()
         self.tweakEdit.setText("1")
         rbutton = QPushButton(">")
         rbutton.clicked.connect(self.tweak_right)
-        self.box.insertWidget(4, lbutton)
-        self.box.insertWidget(5, self.tweakEdit)
-        self.box.insertWidget(6, rbutton)
+        self.box.insertWidget(4, gobutton)
+        self.box.insertWidget(5, lbutton)
+        self.box.insertWidget(6, self.tweakEdit)
+        self.box.insertWidget(7, rbutton)
 
     def enter_position(self):
         newpos = float(self.lineEdit.text())

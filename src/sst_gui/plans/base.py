@@ -32,10 +32,15 @@ class PlanWidget(QWidget):
             self.layout.addLayout(input_layout)
 
             for key, value in kwargs.items():
-                if value in (int, float, str):
+                if isinstance(value, (list, tuple)):
+                    label = QLabel(value[0])
+                    value = value[1]
+                else:
                     label = QLabel(key)
+                if value in (int, float, str):
                     input_layout.addWidget(label)
                     line_edit = QLineEdit(self)
+                    line_edit.editingFinished.connect(self.check_plan_ready)
                     if value == int:
                         line_edit.setValidator(QIntValidator())
                     elif value == float:
@@ -43,12 +48,12 @@ class PlanWidget(QWidget):
                     input_layout.addWidget(line_edit)
                     self.input_widgets[key] = line_edit
                 elif isinstance(value, list):
-                    label = QLabel(key)
                     input_layout.addWidget(label)
                     combo_box = QComboBox(self)
                     combo_box.addItem("none")
                     combo_box.addItems(value)
                     input_layout.addWidget(combo_box)
+                    combo_box.currentIndexChanged.connect(self.check_plan_ready)
                     self.input_widgets[key] = combo_box
         print("Finished initializing PlanWidget")
 
@@ -76,6 +81,14 @@ class PlanWidget(QWidget):
             if value not in ("", "none"):
                 params[key] = value
         return params
+
+    def check_plan_ready(self):
+        params = self.get_params()
+        checks = [key in params for key in self.input_widgets.keys()]
+        if all(checks):
+            self.plan_ready.emit(True)
+        else:
+            self.plan_ready.emit(False)
 
     def clear_layout(self):
         for i in reversed(range(self.layout.count())):

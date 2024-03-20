@@ -23,7 +23,14 @@ class XASPlanWidget(PlanWidget):
     signal_update_xas = Signal(object)
 
     def __init__(self, model, parent=None):
-        super().__init__(model, parent, repeat=int, eslit=float, dwell=float)
+        super().__init__(
+            model,
+            parent,
+            repeat=int,
+            eslit=("Exit Slit", float),
+            dwell=float,
+            comment=str,
+        )
         print("Initializing XAS")
         self.display_name = "XAS"
         self.xas_plans = {}

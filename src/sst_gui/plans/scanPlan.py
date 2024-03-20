@@ -1,22 +1,33 @@
 from qtpy.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
     QComboBox,
-    QLineEdit,
-    QPushButton,
-    QHBoxLayout,
-    QLabel,
-    QDialog,
-    QListWidget,
-    QListWidgetItem,
-    QStackedWidget,
-    QSizePolicy,
 )
-from qtpy.QtGui import QDoubleValidator, QIntValidator
-from qtpy.QtCore import Signal, Qt
-from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
+from qtpy.QtCore import Signal
 from bluesky_queueserver_api import BPlan
 from .base import PlanWidget
+
+
+class TimescanWidget(PlanWidget):
+    def __init__(self, model, parent=None):
+        super().__init__(model, parent, steps=int, dwell=float, comment=str)
+        self.display_name = "timescan"
+
+    def check_plan_ready(self):
+        params = self.get_params()
+
+        if "steps" in params:
+            self.plan_ready.emit(True)
+        else:
+            self.plan_ready.emit(False)
+
+    def submit_plan(self):
+        params = self.get_params()
+        item = BPlan(
+            "tes_count",
+            params["steps"],
+            dwell=params["dwell"],
+            comment=params["comment"],
+        )
+        self.run_engine_client.queue_item_add(item=item)
 
 
 class ScanPlanWidget(PlanWidget):
@@ -25,7 +36,7 @@ class ScanPlanWidget(PlanWidget):
     def __init__(self, model, parent=None):
         # Make this into a more general base, and then add variants on top of it, i.e,
         # relscan, grid_scan, etc
-        super().__init__(model, parent)
+        super().__init__(model, parent, start=float, end=float, steps=int, comment=str)
         print("Initializing Scan")
         self.display_name = "scan"
         self.motors = {}
@@ -50,25 +61,13 @@ class ScanPlanWidget(PlanWidget):
     def create_scan_modifier(self):
         self.noun_selection = QComboBox(self)
         self.noun_selection.addItems(self.motors.keys())
-        self.modifier_input_from = QLineEdit(self)
-        self.modifier_input_from.editingFinished.connect(self.check_plan_ready)
-        self.modifier_input_from.setValidator(QDoubleValidator())
-        self.modifier_input_to = QLineEdit(self)
-        self.modifier_input_to.editingFinished.connect(self.check_plan_ready)
-        self.modifier_input_to.setValidator(QDoubleValidator())
-        self.modifier_input_steps = QLineEdit(self)
-        self.modifier_input_steps.editingFinished.connect(self.check_plan_ready)
-        self.modifier_input_steps.setValidator(QIntValidator())
-
-        self.basePlanLayout.addWidget(self.noun_selection)
-        self.basePlanLayout.addWidget(self.modifier_input_from)
-        self.basePlanLayout.addWidget(self.modifier_input_to)
-        self.basePlanLayout.addWidget(self.modifier_input_steps)
+        self.basePlanLayout.insertWidget(0, self.noun_selection)
 
     def check_plan_ready(self):
-        check1 = self.modifier_input_from.text() != ""
-        check2 = self.modifier_input_to.text() != ""
-        check3 = self.modifier_input_steps.text() != ""
+        params = self.get_params()
+        check1 = "start" in params
+        check2 = "end" in params
+        check3 = "steps" in params
         if check1 and check2 and check3:
             self.plan_ready.emit(True)
         else:
@@ -77,8 +76,16 @@ class ScanPlanWidget(PlanWidget):
     def submit_plan(self):
         motor_text = self.noun_selection.currentText()
         motor = self.motors[motor_text]
-        start = float(self.modifier_input_from.text())
-        end = float(self.modifier_input_to.text())
-        steps = int(self.modifier_input_steps.text())
-        item = BPlan("tes_scan", motor, start, end, steps)
+        params = self.get_params()
+        # start = float(self.modifier_input_from.text())
+        # end = float(self.modifier_input_to.text())
+        # steps = int(self.modifier_input_steps.text())
+        item = BPlan(
+            "tes_scan",
+            motor,
+            params["start"],
+            params["end"],
+            params["steps"],
+            comment=params["comment"],
+        )
         self.run_engine_client.queue_item_add(item=item)

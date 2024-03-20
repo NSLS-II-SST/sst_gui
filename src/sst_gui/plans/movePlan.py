@@ -24,7 +24,7 @@ class MovePlanWidget(PlanWidget):
     modifiersAllowed = []
 
     def __init__(self, model, parent=None):
-        super().__init__(model, parent)
+        super().__init__(model, parent, position=float)
         print("Initializing Move")
         self.display_name = "move"
         self.motors = {}
@@ -49,21 +49,11 @@ class MovePlanWidget(PlanWidget):
     def create_move_modifier(self):
         self.noun_selection = QComboBox(self)
         self.noun_selection.addItems(self.motors.keys())
-        self.modifier_selection = QLineEdit(self)
-        self.modifier_selection.setValidator(QDoubleValidator())
-        self.modifier_selection.editingFinished.connect(self.check_plan_ready)
         self.basePlanLayout.addWidget(self.noun_selection)
-        self.basePlanLayout.addWidget(self.modifier_selection)
-
-    def check_plan_ready(self):
-        if self.modifier_selection.text() != "":
-            self.plan_ready.emit(True)
-        else:
-            self.plan_ready.emit(False)
 
     def submit_plan(self):
         motor_text = self.noun_selection.currentText()
         motor = self.motors[motor_text]
-        position = float(self.modifier_selection.text())
-        item = BPlan("move", motor, position)
+        params = self.get_params()
+        item = BPlan("move", motor, params["position"])
         self.run_engine_client.queue_item_add(item=item)

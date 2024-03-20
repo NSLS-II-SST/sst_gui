@@ -26,6 +26,7 @@ sst-edit-config = "sst_gui.confEdit:main"
 sst-gui-scan = "sst_gui.plans.scanPlan:ScanPlanWidget"
 sst-gui-move = "sst_gui.plans.movePlan:MovePlanWidget"
 sst-gui-xas = "sst_gui.plans.xasPlan:XASPlanWidget"
+sst-gui-timescan = "sst_gui.plans.scanPlan:TimescanWidget"
 
 [project.entry-points."sst_gui.tabs"]
 sst-gui-plans = "sst_gui.tabs.newPlanTab:PlanTabWidget"

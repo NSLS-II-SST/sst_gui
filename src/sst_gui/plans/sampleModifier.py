@@ -109,7 +109,9 @@ class SampleSelectWidget(QWidget):
         self.one_sample.clear()
         self.one_sample.addItem("Select Sample")
         self.one_sample.setItemData(0, "", Qt.UserRole - 1)
-        self.one_sample.addItems(self.samples.keys())
+        self.one_sample.addItems(
+            ["Sample {}: {}".format(k, v["name"]) for k, v in self.samples.items()]
+        )
 
     def get_samples(self):
         if self.sample_option.currentText() == "No Sample":
@@ -117,9 +119,9 @@ class SampleSelectWidget(QWidget):
                 None,
             ]
         elif self.sample_option.currentText() == "One Sample":
-            return [
-                self.one_sample.currentText(),
-            ]
+            sampletext = self.one_sample.currentText()
+            sample_id = sampletext.split(":")[0][7:]
+            return [sample_id]
         elif self.sample_option.currentText() == "Multiple Samples":
             return self.checked_samples
 
