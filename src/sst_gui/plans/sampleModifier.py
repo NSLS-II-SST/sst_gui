@@ -2,13 +2,11 @@ from qtpy.QtWidgets import (
     QWidget,
     QVBoxLayout,
     QComboBox,
-    QLineEdit,
     QDialog,
     QPushButton,
     QHBoxLayout,
     QLabel,
     QStackedWidget,
-    QSizePolicy,
     QListWidget,
     QListWidgetItem,
 )

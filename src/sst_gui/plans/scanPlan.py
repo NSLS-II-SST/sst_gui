@@ -22,10 +22,10 @@ class TimescanWidget(PlanWidget):
     def submit_plan(self):
         params = self.get_params()
         item = BPlan(
-            "tes_count",
+            "sst_count",
             params["steps"],
-            dwell=params["dwell"],
-            comment=params["comment"],
+            dwell=params.get("dwell", None),
+            comment=params.get("comment", None),
         )
         self.run_engine_client.queue_item_add(item=item)
 
@@ -36,7 +36,9 @@ class ScanPlanWidget(PlanWidget):
     def __init__(self, model, parent=None):
         # Make this into a more general base, and then add variants on top of it, i.e,
         # relscan, grid_scan, etc
-        super().__init__(model, parent, start=float, end=float, steps=int, comment=str)
+        super().__init__(
+            model, parent, start=float, end=float, steps=int, dwell=float, comment=str
+        )
         print("Initializing Scan")
         self.display_name = "scan"
         self.motors = {}
@@ -81,11 +83,12 @@ class ScanPlanWidget(PlanWidget):
         # end = float(self.modifier_input_to.text())
         # steps = int(self.modifier_input_steps.text())
         item = BPlan(
-            "tes_scan",
+            "sst_scan",
             motor,
             params["start"],
             params["end"],
             params["steps"],
-            comment=params["comment"],
+            dwell=params.get("dwell", None),
+            comment=params.get("comment", None),
         )
         self.run_engine_client.queue_item_add(item=item)
