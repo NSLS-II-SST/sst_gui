@@ -55,7 +55,8 @@ class ScanPlanWidget(PlanWidget):
     def update_motors(self, plan_dict):
         inverted_dict = {}
         for key, value in plan_dict.items():
-            inverted_dict[value] = key
+            if value != "":
+                inverted_dict[value] = key
         self.motors = inverted_dict
         self.noun_selection.clear()
         self.noun_selection.addItems(self.motors.keys())
