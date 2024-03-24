@@ -7,7 +7,7 @@ from bluesky_widgets.qt.run_engine_client import (
 )
 from ..widgets.status import ProposalStatus, StatusBox, BLController
 from ..widgets.utils import HLine
-from ..widgets.manipulator_monitor import RealManipulatorMonitor
+from ..widgets.manipulator_monitor import RealManipulatorControl, PseudoManipulatorControl
 from ..widgets.energy import EnergyMonitor
 from ..widgets.views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 
@@ -48,7 +48,7 @@ class MonitorTab(QWidget):
         beamBox.addWidget(AutoControlBox(beamline.shutters, "Shutters", model))
         print("Beamline shutters box added")
 
-        beamBox.addWidget(EnergyMonitor(beamline.primary_energy, model))
+        beamBox.addWidget(PseudoManipulatorControl(beamline.primary_energy.energy, model))
 
         vbox.addLayout(beamBox)
         vbox.addWidget(HLine())
@@ -56,13 +56,7 @@ class MonitorTab(QWidget):
         vbox.addWidget(AutoMonitorBox(beamline.detectors, "Detectors", model, "h"))
         print("Added detectors Monitor")
         hbox = QHBoxLayout()
-        hbox.addWidget(
-            AutoMonitorBox(
-                beamline.primary_manipulator.real_axes_models,
-                "Manipulator Real Axes",
-                model,
-                "v",
-            )
+        hbox.addWidget(RealManipulatorControl(beamline.primary_manipulator, model, orientation="v")
         )
         print("Added manipulator Monitor")
 

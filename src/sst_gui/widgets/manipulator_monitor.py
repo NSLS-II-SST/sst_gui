@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QGroupBox
+from qtpy.QtWidgets import QVBoxLayout, QHBoxLayout, QGroupBox, QWidget
 from .motor import MotorMonitor, MotorControl
 
 
@@ -16,58 +16,54 @@ class RealManipulatorControl(QGroupBox):
         Arbitrary keyword arguments.
     """
 
-    def __init__(self, manipulator, *args, orientation=None, **kwargs):
-        super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
+    def __init__(self, manipulator, parent_model, orientation=None, **kwargs):
+        super().__init__(manipulator.label + " Real Axes", **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.real_axes_models:
-            vbox.addWidget(MotorControl(m))
+            vbox.addWidget(MotorControl(m, parent_model))
         self.setLayout(vbox)
 
 
 class PseudoManipulatorControl(QGroupBox):
-    def __init__(self, manipulator, *args, orientation=None, **kwargs):
-        super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
+    def __init__(self, manipulator, parent_model, orientation=None, **kwargs):
+        super().__init__(manipulator.label + " Pseudoaxes",**kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.pseudo_axes_models:
             print(f"Adding {m.label} to PseudoManipulatorControl")
-            vbox.addWidget(MotorControl(m))
+            vbox.addWidget(MotorControl(m, parent_model))
         self.setLayout(vbox)
 
 
 class RealManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, orientation=None, **kwargs):
-        super().__init__(manipulator.label + " Real Axes", *args, **kwargs)
+    def __init__(self, manipulator, parent_model, orientation=None, **kwargs):
+        super().__init__(manipulator.label + " Real Axes", **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.real_axes_models:
-            vbox.addWidget(MotorMonitor(m))
+            vbox.addWidget(MotorMonitor(m, parent_model))
         self.setLayout(vbox)
 
 
 class PseudoManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, orientation=None, **kwargs):
-        super().__init__(manipulator.label + " Pseudoaxes", *args, **kwargs)
+    def __init__(self, manipulator, parent_model, orientation=None, **kwargs):
+        super().__init__(manipulator.label + " Pseudoaxes", **kwargs)
         vbox = QVBoxLayout()
         for m in manipulator.pseudo_axes_models:
-            vbox.addWidget(MotorMonitor(m))
+            vbox.addWidget(MotorMonitor(m, parent_model))
         self.setLayout(vbox)
 
 
-class ManipulatorMonitor(QGroupBox):
-    def __init__(self, manipulator, *args, orientation=None, **kwargs):
-        super().__init__("Manipulator", *args, **kwargs)
+class ManipulatorMonitor(QWidget):
+    def __init__(self, manipulator, parent_model, orientation=None, parent=None, **kwargs):
+        super().__init__(parent=parent)
         hbox = QHBoxLayout()
-        vbox1 = QVBoxLayout()
-        vbox1.addWidget(MotorMonitor(manipulator.x))
-        vbox1.addWidget(MotorMonitor(manipulator.y))
-        vbox1.addWidget(MotorMonitor(manipulator.z))
-        vbox1.addWidget(MotorMonitor(manipulator.r))
-        vbox2 = QVBoxLayout()
+        hbox.addWidget(RealManipulatorMonitor(manipulator, parent_model, orientation, **kwargs))
+        hbox.addWidget(PseudoManipulatorMonitor(manipulator, parent_model, orientation, **kwargs))
+        self.setLayout(hbox)
 
-        vbox2.addWidget(MotorControl(manipulator.sx))
-        vbox2.addWidget(MotorMonitor(manipulator.sy))
-        vbox2.addWidget(MotorMonitor(manipulator.sz))
-        vbox2.addWidget(MotorMonitor(manipulator.sr))
-
-        hbox.addLayout(vbox1)
-        hbox.addLayout(vbox2)
+class ManipulatorControl(QWidget):
+    def __init__(self, manipulator, parent_model, orientation=None, parent=None, **kwargs):
+        super().__init__(parent=parent)
+        hbox = QHBoxLayout()
+        hbox.addWidget(RealManipulatorControl(manipulator, parent_model, orientation, **kwargs))
+        hbox.addWidget(PseudoManipulatorControl(manipulator, parent_model, orientation, **kwargs))
         self.setLayout(hbox)

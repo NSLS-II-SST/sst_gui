@@ -9,7 +9,9 @@ from qtpy.QtWidgets import (
     QStackedWidget,
     QSizePolicy,
 )
-from bluesky_widgets.qt.run_engine_client import QtRePlanQueue
+from bluesky_widgets.qt.run_engine_client import (
+    QtRePlanQueue, QtReQueueControls, QtReExecutionControls,
+)
 from ..plans.base import PlanWidget
 
 
@@ -22,9 +24,14 @@ class PlanTabWidget(QWidget):
 
         self.layout = QVBoxLayout(self)
         # Create and add the PlanSubmissionWidget
+        submissionBox = QHBoxLayout(self)
         self.plan_submission_widget = PlanSubmissionWidget(model, self)
+        submissionBox.addWidget(self.plan_submission_widget)
+        submissionBox.addWidget(QtReQueueControls(model.run_engine))
+        submissionBox.addWidget(QtReExecutionControls(model.run_engine))
+
         # self.plan_submission_widget.setParent(self)
-        self.layout.addWidget(self.plan_submission_widget)
+        self.layout.addLayout(submissionBox)
 
         # Create and add the _QtReViewer
         self.qt_plan_queue = QtRePlanQueue(model.run_engine)

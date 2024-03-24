@@ -60,10 +60,13 @@ class MotorControl(MotorMonitor):
         self.tweakEdit.setText("1")
         rbutton = QPushButton(">")
         rbutton.clicked.connect(self.tweak_right)
+        stopButton = QPushButton("Stop!")
+        stopButton.clicked.connect(self.model.stop)
         self.box.insertWidget(4, gobutton)
         self.box.insertWidget(5, lbutton)
         self.box.insertWidget(6, self.tweakEdit)
         self.box.insertWidget(7, rbutton)
+        self.box.insertWidget(8, stopButton)
 
     def enter_position(self):
         newpos = float(self.lineEdit.text())
