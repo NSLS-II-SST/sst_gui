@@ -13,11 +13,8 @@ class QtViewer(QTabWidget):
         self.setTabPosition(QTabWidget.North)
         self.setMovable(True)
 
-        if exists(SETTINGS.gui_config):
-            with open(SETTINGS.gui_config, "r") as config_file:
-                config = toml.load(config_file)
-        else:
-            config = {}
+        config = SETTINGS.gui_config
+
         tabs_to_include = config.get("gui", {}).get("tabs", {}).get("include", [])
         tabs_to_exclude = config.get("gui", {}).get("tabs", {}).get("exclude", [])
 
@@ -39,34 +36,3 @@ class QtViewer(QTabWidget):
             if tab_name in self.tab_dict:
                 tab_widget = self.tab_dict[tab_name]
                 self.addTab(tab_widget, tab_widget.name)
-
-        """
-        # self._re_manager_monitor = QtRunEngineManager_Monitor(model.run_engine)
-        # self.addTab(self._re_manager_monitor, "Monitor Queue")
-        # print("Added RE Monitor")
-        # self._re_manager_editor = QtRunEngineManager_Editor(model.run_engine)
-        # self.addTab(self._re_manager_editor, "Edit and Control Queue")
-        self._queue_control = QueueControlTab(model.run_engine)
-        self.addTab(self._queue_control, "QueueServer Control")
-        print("Added RE Manager")
-        self._bl_status_monitor = MonitorTab(model)
-        self.addTab(self._bl_status_monitor, "Beamline Status")
-        print("Added MonitorTab")
-        self._plan_editor = PlanTabWidget(model)
-        self.addTab(self._plan_editor, "Plan Editor")
-        print("Added PlanEditor")
-        self._plan_editor2 = PlanTabWidget2(model)
-        self.addTab(self._plan_editor2, "Plan Editor2")
-        self._motor_control = MotorTab(model)
-        self.addTab(self._motor_control, "Motor Control")
-
-
-        self._bl_interactive = InteractiveTab(model)
-        self.addTab(self._bl_interactive, "Beamline Control")
-
-        self._bl_sample_monitor = SampleTab(model)
-        self.addTab(self._bl_sample_monitor, "Samples")
-        self._ipython_console = IPythonConsoleTab(model)
-        self.addTab(self._ipython_console, "IPython Console")
-        print("Added IPython Console")
-        """

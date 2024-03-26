@@ -97,7 +97,7 @@ class UserStatus(QObject):
 class BeamlineModel:
     def __init__(self):
 
-        config = load_device_config(SETTINGS.object_config, SETTINGS.gui_config)
+        config = load_device_config(SETTINGS.object_config, SETTINGS.gui_config_file)
         for key in config.keys():
             print(f"Loading {key} in BeamlineModel")
             setattr(self, key, instantiateGroup(key, config=config))
@@ -184,7 +184,7 @@ class GVModel(BaseModel):
             QTimer.singleShot(100000, self._check_status)
         except:
             QTimer.singleShot(10000, self._check_status)
-            
+
     def _status_change(self, value, **kwargs):
         if value == self.obj.openval:
             self.gvStatusChanged.emit("open")
@@ -209,7 +209,6 @@ class PVModelRO(BaseModel):
             QTimer.singleShot(100000, self._check_value)
         except:
             QTimer.singleShot(10000, self._check_value)
-
 
     def _value_changed(self, value, **kwargs):
         if self.value_type is None:
@@ -316,7 +315,7 @@ class MotorModel(PVModel):
     @property
     def setpoint(self):
         return self._setpoint
-            
+
     @property
     def position(self):
         try:
@@ -374,7 +373,7 @@ class PVPositionerModel(PVModel):
             print(f"{e} in {self.label} moving")
             self.checkSelfTimer.setInterval(8000)
             return
-        
+
         if moving != self._moving:
             self.movingStatusChanged.emit(moving)
             self._moving = moving
@@ -382,7 +381,7 @@ class PVPositionerModel(PVModel):
     @property
     def setpoint(self):
         return self._setpoint
-    
+
     def set(self, value):
         # print("Setting {self.name} to {value}")
         self.obj.set(value)
