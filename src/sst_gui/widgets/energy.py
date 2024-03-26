@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (
     QMessageBox,
 )
 from .motor import MotorMonitor, MotorControl
+from .manipulator_monitor import ManipulatorMonitor, PseudoManipulatorControl
 
 from bluesky_queueserver_api import BPlan
 
@@ -18,15 +19,20 @@ class EnergyMonitor(QGroupBox):
 
     def __init__(self, energy, parent_model, *args, orientation=None, **kwargs):
         super().__init__("Energy Monitor", *args, **kwargs)
-        vbox = QVBoxLayout()
-        vbox.addWidget(MotorMonitor(energy.energy_motor, parent_model))
-        vbox.addWidget(MotorMonitor(energy.gap_motor, parent_model))
-        vbox.addWidget(MotorMonitor(energy.phase_motor, parent_model))
-        vbox.addWidget(
+        hbox = QHBoxLayout()
+        vbox1 = QVBoxLayout()
+        for m in energy.energy.pseudo_axes_models:
+            vbox1.addWidget(MotorMonitor(m, parent_model))
+        vbox1.addWidget(
             MotorMonitor(parent_model.beamline.motors["Exit_Slit"], parent_model)
         )
-        vbox.addWidget(MotorMonitor(energy.grating_motor, parent_model))
-        self.setLayout(vbox)
+        vbox1.addWidget(MotorMonitor(energy.grating_motor, parent_model))
+        vbox2 = QVBoxLayout()
+        for m in energy.energy.real_axes_models:
+            vbox2.addWidget(MotorMonitor(m, parent_model))
+        hbox.addLayout(vbox1)
+        hbox.addLayout(vbox2)
+        self.setLayout(hbox)
 
 
 class EnergyControl(QGroupBox):
@@ -38,7 +44,9 @@ class EnergyControl(QGroupBox):
         print("Creating Energy Control Vbox")
         vbox = QVBoxLayout()
         print("Creating Energy Motor")
-        vbox.addWidget(MotorControl(energy.energy_motor, parent_model))
+        for m in energy.energy.pseudo_axes_models:
+            vbox.addWidget(MotorControl(m, parent_model))
+        #vbox.addWidget(PseudoManipulatorControl(energy.energy, parent_model))
         print("Creating Exit Slit")
         vbox.addWidget(
             MotorControl(parent_model.beamline.motors["Exit_Slit"], parent_model)

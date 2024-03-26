@@ -10,6 +10,7 @@ from .models import (
     BaseModel,
     ControlModel,
     PVPositionerModel,
+    EnergyAxesModel,
 )
 from .settings import SETTINGS
 
@@ -52,38 +53,19 @@ def controlFromOphyd(prefix, group=None, label=None, requester=None, **kwargs):
 
 
 def energyModelFromOphyd(prefix, group=None, label=None, **kwargs):
-    energy = findAndLoadDevice(prefix, config=SETTINGS.object_config)
-    name = energy.name
-    energy_motor = PVPositionerModel(
-        name=energy.monoen.name,
-        obj=energy.monoen,
-        group=group,
-        label=f"{name} Monochromator",
-    )
-    gap_motor = MotorModel(
-        name=energy.epugap.name,
-        obj=energy.epugap,
-        group=group,
-        label=f"{name} EPU Gap",
-    )
-    phase_motor = MotorModel(
-        name=energy.epuphase.name,
-        obj=energy.epuphase,
-        group=group,
-        label=f"{name} EPU Phase",
-    )
+    obj = findAndLoadDevice(prefix, config=SETTINGS.object_config)
+    name = obj.name
+    energy = EnergyAxesModel(name, obj, group, name)
     grating_motor = PVPositionerModel(
-        name=energy.monoen.gratingx.name,
-        obj=energy.monoen.gratingx,
+        name=obj.monoen.gratingx.name,
+        obj=obj.monoen.gratingx,
         group=group,
         label=f"{name} Grating",
     )
     enModel = EnergyModel(
         name,
+        obj,
         energy,
-        energy_motor,
-        gap_motor,
-        phase_motor,
         grating_motor,
         group,
         label,

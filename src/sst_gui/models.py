@@ -114,7 +114,7 @@ class BeamlineModel:
             # Temporary until we can work out the config file
             self.primary_manipulator = self.manipulators["manipulator"]
         # Can we make an energy-builder that side-steps the need for this?
-        self.energy["en"].energy.rotation_motor = self.manipulators["manipulator"].obj.r
+        self.energy["en"].obj.rotation_motor = self.manipulators["manipulator"].obj.r
         print("Finished loading BeamlineModel")
 
 
@@ -125,20 +125,16 @@ class EnergyModel:
     def __init__(
         self,
         name,
+        obj,
         energy,
-        energy_motor,
-        gap_motor,
-        phase_motor,
         grating_motor,
         group,
         label,
         **kwargs,
     ):
         self.name = name
+        self.obj = obj
         self.energy = energy
-        self.energy_motor = energy_motor
-        self.gap_motor = gap_motor
-        self.phase_motor = phase_motor
         self.grating_motor = grating_motor
         self.group = group
         self.label = label
@@ -220,12 +216,16 @@ class PVModelRO(BaseModel):
                 self.value_type = str
             else:
                 self.value_type = type(value)
-        if self.value_type is float:
-            value = "{:.2f}".format(value)
-        elif self.value_type is int:
-            value = "{:d}".format(value)
-        else:
-            value = str(value)
+        try:
+            if self.value_type is float:
+                value = "{:.2f}".format(value)
+            elif self.value_type is int:
+                value = "{:d}".format(value)
+            else:
+                value = str(value)
+        except ValueError:
+            self.value_type = None
+            return
         self._value = value
         self.valueChanged.emit(value)
 
@@ -267,12 +267,16 @@ class ScalarModel(BaseModel):
                 self.value_type = str
             else:
                 self.value_type = type(value)
-        if self.value_type is float:
-            value = "{:.2f}".format(value)
-        elif self.value_type is int:
-            value = "{:d}".format(value)
-        else:
-            value = str(value)
+        try:
+            if self.value_type is float:
+                value = "{:.2f}".format(value)
+            elif self.value_type is int:
+                value = "{:d}".format(value)
+            else:
+                value = str(value)
+        except ValueError:
+            self.value_type = None
+            return
         self.valueChanged.emit(value)
 
 
@@ -326,6 +330,9 @@ class MotorModel(PVModel):
     def set(self, value):
         self._obj_setpoint.set(value).wait()
 
+    def stop(self):
+        self.obj.stop()
+
 
 class PVPositionerModel(PVModel):
     default_controller = MotorControl
@@ -344,34 +351,51 @@ class PVPositionerModel(PVModel):
             self._obj_setpoint = self.obj
         self._setpoint = 0
         self._moving = False
-        self.checkSelfTimer = QTimer(self)
-        self.checkSelfTimer.setInterval(500)
-        self.checkSelfTimer.timeout.connect(self._check_self)
+        self.checkSPTimer = QTimer(self)
+        self.checkSPTimer.setInterval(1000)
+        self.checkSPTimer.timeout.connect(self._check_setpoint)
+        self.checkMovingTimer = QTimer(self)
+        self.checkMovingTimer.setInterval(500)
+        self.checkMovingTimer.timeout.connect(self._check_moving)
         # Start the timer
-        self.checkSelfTimer.start()
+        self.checkSPTimer.start()
+        self.checkMovingTimer.start()
         print("Done Initializing")
 
-    def _check_self(self):
+    def _check_value(self):
+        try:
+            value = self.obj.readback.get(connection_timeout=0.2, timeout=0.2)
+            new_sp = self._obj_setpoint.get(connection_timeout=0.2)
+            self._value_changed(value)
+            self.setpointChanged.emit(new_sp)
+            QTimer.singleShot(100000, self._check_value)
+        except:
+            QTimer.singleShot(10000, self._check_value)
+
+        
+    def _check_setpoint(self):
         # Timeout errors self-explanatory. TypeErrors occur when a pseudopositioner times out and
         # tries to do an inverse calculation anyway
         try:
             new_sp = self._obj_setpoint.get(connection_timeout=0.2)
-            self.checkSelfTimer.setInterval(500)
+            self.checkSPTimer.setInterval(1000)
         except (ConnectionTimeoutError, TypeError, DisconnectedError) as e:
             print(f"{e} in {self.label}")
-            self.checkSelfTimer.setInterval(8000)
+            self.checkSPTimer.setInterval(8000)
             return
-        # print(self.label, new_sp, type(new_sp))
 
-        if new_sp != self._setpoint:
+        if new_sp != self._setpoint and self._moving:
+            # print(self.label, new_sp, self._setpoint, type(new_sp))
             self._setpoint = new_sp
             self.setpointChanged.emit(self._setpoint)
+
+    def _check_moving(self):
         try:
             moving = self.obj.moving
-            self.checkSelfTimer.setInterval(500)
+            self.checkMovingTimer.setInterval(500)
         except (ConnectionTimeoutError, DisconnectedError) as e:
             print(f"{e} in {self.label} moving")
-            self.checkSelfTimer.setInterval(8000)
+            self.checkMovingTimer.setInterval(8000)
             return
 
         if moving != self._moving:
@@ -386,6 +410,8 @@ class PVPositionerModel(PVModel):
         # print("Setting {self.name} to {value}")
         self.obj.set(value)
 
+    def stop(self):
+        self.obj.stop()
 
 class ControlModel(BaseModel):
     controlChange = Signal(str)
@@ -409,6 +435,22 @@ class ControlModel(BaseModel):
 
 class HexapodModel(BaseModel):
     pass
+
+class EnergyAxesModel(BaseModel):
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
+        self.real_axes_models = [
+            PVPositionerModel(
+                name=real_axis.name, obj=real_axis, group=group, label=real_axis.name
+            )
+            for real_axis in obj.real_positioners
+        ]
+        self.pseudo_axes_models = [
+            PVPositionerModel(
+                name=ps_axis.name, obj=ps_axis, group=group, label=ps_axis.name
+            )
+            for ps_axis in obj.pseudo_positioners
+        ]
 
 
 class ManipulatorModel(BaseModel):
