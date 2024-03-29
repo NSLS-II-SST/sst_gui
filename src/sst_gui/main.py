@@ -105,7 +105,7 @@ def main(argv=None):
 
     profile_dir = get_ipython_startup_dir(args.profile, args.ipython_dir)
     SETTINGS.object_config = join(profile_dir, "device_config.yaml")
-    SETTINGS.gui_config = join(profile_dir, "gui_config.toml")
+    SETTINGS.gui_config_file = join(profile_dir, "gui_config.toml")
     if exists(SETTINGS.gui_config_file):
         with open(SETTINGS.gui_config_file, "r") as config_file:
             SETTINGS.gui_config = toml.load(config_file)

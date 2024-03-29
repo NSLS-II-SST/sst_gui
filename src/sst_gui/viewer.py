@@ -49,6 +49,7 @@ class ViewerModel:
         )
         self.user_status = UserStatus(self.run_engine)
         self.beamline = BeamlineModel()
+        self.settings = SETTINGS
 
 
 class Viewer(ViewerModel):

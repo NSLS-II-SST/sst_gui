@@ -25,10 +25,12 @@ class QtViewer(QTabWidget):
             tab = tab_entry_point.load()  # Load the modifier function
             if callable(tab):
                 # Call the modifier function with model and self (as parent) to get the QWidget
-                tab_widget = tab(model)
-                if explicit_inclusion and tab_entry_point.name in tabs_to_include:
-                    self.tab_dict[tab_entry_point.name] = tab_widget
+                if explicit_inclusion:
+                    if tab_entry_point.name in tabs_to_include:
+                        tab_widget = tab(model)
+                        self.tab_dict[tab_entry_point.name] = tab_widget
                 elif tab_entry_point.name not in tabs_to_exclude:
+                    tab_widget = tab(model)
                     self.tab_dict[tab_entry_point.name] = tab_widget
                     tabs_to_include.append(tab_entry_point.name)
 
