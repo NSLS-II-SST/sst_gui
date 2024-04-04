@@ -29,7 +29,7 @@ sst-gui-xas = "sst_gui.plans.xasPlan:XASPlanWidget"
 sst-gui-timescan = "sst_gui.plans.scanPlan:TimescanWidget"
 
 [project.entry-points."sst_gui.tabs"]
-sst-gui-plans = "sst_gui.tabs.newPlanTab:PlanTabWidget"
+sst-gui-plans = "sst_gui.tabs.planTab:PlanTabWidget"
 sst-gui-motors = "sst_gui.tabs.motorTab:MotorTab"
 sst-gui-queue = "sst_gui.tabs.queueControlTab:QueueControlTab"
 sst-gui-console = "sst_gui.tabs.consoleTab:IPythonConsoleTab"

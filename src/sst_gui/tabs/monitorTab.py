@@ -8,7 +8,6 @@ from bluesky_widgets.qt.run_engine_client import (
 from ..widgets.status import ProposalStatus, StatusBox, BLController
 from ..widgets.utils import HLine
 from ..widgets.manipulator_monitor import RealManipulatorControl, PseudoManipulatorControl
-from ..widgets.energy import EnergyMonitor
 from ..widgets.views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 
 

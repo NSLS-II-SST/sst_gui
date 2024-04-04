@@ -9,7 +9,7 @@ from sst_funcs.configuration import instantiateGroup
 from .settings import SETTINGS
 from .autoconf import load_device_config
 from .widgets.motor import MotorControl, MotorMonitor
-from .widgets.monitors import PVMonitor
+from .widgets.monitors import PVMonitor, PVControl
 from .widgets.gatevalve import GVControl, GVMonitor
 from .widgets.energy import EnergyControl, EnergyMonitor
 
@@ -156,6 +156,11 @@ class BaseModel(QWidget):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        self.destroyed.connect(lambda: self._cleanup)
+
+    def _cleanup(self):
+        pass
+
 
 class GVModel(BaseModel):
     default_controller = GVControl
@@ -164,9 +169,12 @@ class GVModel(BaseModel):
 
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
-        self.obj.state.subscribe(self._status_change, run=True)
+        self.sub_key = self.obj.state.subscribe(self._status_change, run=True)
         timer = QTimer.singleShot(5000, self._check_status)
 
+    def _cleanup(self):
+        self.obj.state.unsubscribe(self.sub_key)
+        
     def open(self):
         self.obj.open_nonplan()
 
@@ -195,8 +203,12 @@ class PVModelRO(BaseModel):
         super().__init__(name, obj, group, label, **kwargs)
         self.value_type = None
         self._value = "Disconnected"
-        self.obj.subscribe(self._value_changed, run=True)
+        self.sub_key = self.obj.subscribe(self._value_changed, run=True)
         timer = QTimer.singleShot(5000, self._check_value)
+
+    def _cleanup(self):
+        self.obj.unsubscribe(self.sub_key)
+
 
     def _check_value(self):
         try:
@@ -235,7 +247,9 @@ class PVModelRO(BaseModel):
 
 
 class PVModel(PVModelRO):
+    default_controller = PVControl
     # Need to make this more robust!
+
     def set(self, val):
         self.obj.set(val).wait()
 
@@ -246,8 +260,12 @@ class ScalarModel(BaseModel):
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
         self.value_type = None
-        self.obj.target.subscribe(self._value_changed, run=True)
+        self.sub_key = self.obj.target.subscribe(self._value_changed, run=True)
         timer = QTimer.singleShot(5000, self._check_value)
+
+    def _cleanup(self):
+        print(f"Cleaning up {self.name}")
+        self.obj.target.unsubscribe(self.sub_key)
 
     def _check_value(self):
         try:
@@ -435,6 +453,25 @@ class ControlModel(BaseModel):
 
 class HexapodModel(BaseModel):
     pass
+
+
+class PseudoPositionerModel(BaseModel):
+    # Needs to check real_axis for PVPositioner or Motor
+    def __init__(self, name, obj, group, label, **kwargs):
+        super().__init__(name, obj, group, label, **kwargs)
+        self.real_axes_models = [
+            PVPositionerModel(
+                name=real_axis.name, obj=real_axis, group=group, label=real_axis.name
+            )
+            for real_axis in obj.real_positioners
+        ]
+        self.pseudo_axes_models = [
+            PVPositionerModel(
+                name=ps_axis.name, obj=ps_axis, group=group, label=ps_axis.name
+            )
+            for ps_axis in obj.pseudo_positioners
+        ]
+
 
 class EnergyAxesModel(BaseModel):
     def __init__(self, name, obj, group, label, **kwargs):
