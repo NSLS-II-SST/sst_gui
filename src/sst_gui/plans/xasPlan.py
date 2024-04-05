@@ -29,6 +29,7 @@ class XASPlanWidget(PlanWidget):
             repeat=int,
             eslit=("Exit Slit", float),
             dwell=float,
+            group_name=("Group Name", str),
             comment=str,
         )
         print("Initializing XAS")

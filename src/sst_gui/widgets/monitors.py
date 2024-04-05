@@ -12,7 +12,11 @@ class PVControl(QWidget):
         self.label = model.label
         self.value = QLabel("")
         self.edit = QLineEdit("")
-        self.model.valueChanged.connect(self.value.setText)
+        if model.units is not None:
+            self.units = model.units
+        else:
+            self.units = ""
+        self.model.valueChanged.connect(self.setText)
         self.setButton = QPushButton("Set")
         self.setButton.clicked.connect(self.enter_value)
         box.addWidget(QLabel(self.label))
@@ -25,6 +29,8 @@ class PVControl(QWidget):
         val = float(self.edit.text())
         self.model.set(val)
 
+    def setText(self, val):
+        self.value.setText(f"{val} {self.units}")
 
 class PVMonitor(QWidget):
     """
@@ -40,11 +46,17 @@ class PVMonitor(QWidget):
             box = QHBoxLayout()
         self.label = model.label
         self.value = QLabel("")
-        self.model.valueChanged.connect(self.value.setText)
+        if model.units is not None:
+            self.units = model.units
+        else:
+            self.units = ""
+        self.model.valueChanged.connect(self.setText)
         box.addWidget(QLabel(self.label))
         box.addWidget(self.value)
         self.setLayout(box)
 
+    def setText(self, val):
+        self.value.setText(f"{val} {self.units}")
 
 
 class PVMonitorV(PVMonitor):

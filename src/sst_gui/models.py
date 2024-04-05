@@ -150,6 +150,11 @@ class BaseModel(QWidget):
         super().__init__()
         self.name = name
         self.obj = obj
+        if hasattr(self.obj, "wait_for_connection"):
+            try:
+                self.obj.wait_for_connection(timeout=1)
+            except:
+                print(f"{name} timed out waiting for connection, moving on!")
         self.group = group
         self.label = label
         self.enabled = True
@@ -157,6 +162,7 @@ class BaseModel(QWidget):
             setattr(self, key, value)
 
         self.destroyed.connect(lambda: self._cleanup)
+        self.units = None
 
     def _cleanup(self):
         pass
@@ -201,6 +207,13 @@ class PVModelRO(BaseModel):
 
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
+        if hasattr(obj, "metadata"):
+            self.units = obj.metadata.get("units", None)
+            print(f"{name} has units {self.units}")
+        else:
+            self.units = None
+            print(f"{name} has no metadata")
+        
         self.value_type = None
         self._value = "Disconnected"
         self.sub_key = self.obj.subscribe(self._value_changed, run=True)
@@ -230,7 +243,7 @@ class PVModelRO(BaseModel):
                 self.value_type = type(value)
         try:
             if self.value_type is float:
-                value = "{:.2f}".format(value)
+                value = "{:.3g}".format(value)
             elif self.value_type is int:
                 value = "{:d}".format(value)
             else:
@@ -259,6 +272,13 @@ class ScalarModel(BaseModel):
 
     def __init__(self, name, obj, group, label, **kwargs):
         super().__init__(name, obj, group, label, **kwargs)
+        if hasattr(obj, "metadata"):
+            self.units = obj.metadata.get("units", None)
+            print(f"{name} has units {self.units}")
+        else:
+            self.units = None
+            print(f"{name} has no metadata")
+        
         self.value_type = None
         self.sub_key = self.obj.target.subscribe(self._value_changed, run=True)
         timer = QTimer.singleShot(5000, self._check_value)
@@ -313,6 +333,12 @@ class MotorModel(PVModel):
             self._obj_setpoint = self.obj.setpoint
         else:
             self._obj_setpoint = self.obj
+
+        if hasattr(self._obj_setpoint, "metadata"):
+            self.units = self._obj_setpoint.metadata.get("units", None)
+        else:
+            self.units = None
+        print(f"{name} has units {self.units}")
         self._setpoint = 0
         self.checkSelfTimer = QTimer(self)
         self.checkSelfTimer.setInterval(500)
@@ -367,6 +393,12 @@ class PVPositionerModel(PVModel):
             self._obj_setpoint = self.obj.setpoint
         else:
             self._obj_setpoint = self.obj
+
+        if hasattr(self._obj_setpoint, "metadata"):
+            self.units = self._obj_setpoint.metadata.get("units", None)
+        else:
+            self.units = None
+        print(f"{name} has units {self.units}")
         self._setpoint = 0
         self._moving = False
         self.checkSPTimer = QTimer(self)

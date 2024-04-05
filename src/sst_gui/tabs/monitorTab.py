@@ -53,6 +53,7 @@ class MonitorTab(QWidget):
         vbox.addWidget(HLine())
 
         vbox.addWidget(AutoMonitorBox(beamline.detectors, "Detectors", model, "h"))
+        vbox.addWidget(AutoMonitorBox(beamline.vacuum, "Vacuum", model, "h"))
         print("Added detectors Monitor")
         hbox = QHBoxLayout()
         hbox.addWidget(RealManipulatorControl(beamline.primary_manipulator, model, orientation="v")

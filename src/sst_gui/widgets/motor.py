@@ -20,6 +20,11 @@ class MotorMonitor(QWidget):
             self.box = QHBoxLayout()
         else:
             self.box = QVBoxLayout()
+        if model.units is not None:
+            self.units = model.units
+        else:
+            self.units = ""
+
         self.label = QLabel(self.model.label)
         self.box.addWidget(self.label)
         self.position = QLabel(self.model.value)
@@ -35,7 +40,7 @@ class MotorMonitor(QWidget):
 
     @Slot(str)
     def update_position(self, value):
-        self.position.setText(value)
+        self.position.setText(f"{value} {self.units}")
 
     @Slot(bool)
     def update_indicator(self, status):

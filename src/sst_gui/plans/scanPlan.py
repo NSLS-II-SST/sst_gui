@@ -8,7 +8,7 @@ from .base import PlanWidget
 
 class TimescanWidget(PlanWidget):
     def __init__(self, model, parent=None):
-        super().__init__(model, parent, steps=int, dwell=float, comment=str)
+        super().__init__(model, parent, steps=int, dwell=float, group_name=("Group Name", str), comment=str)
         self.display_name = "timescan"
 
     def check_plan_ready(self):
@@ -37,7 +37,7 @@ class ScanPlanWidget(PlanWidget):
         # Make this into a more general base, and then add variants on top of it, i.e,
         # relscan, grid_scan, etc
         super().__init__(
-            model, parent, start=float, end=float, steps=int, dwell=float, comment=str
+            model, parent, start=float, end=float, steps=int, dwell=float, group_name=("Group Name", str), comment=str
         )
         print("Initializing Scan")
         self.display_name = "scan"
