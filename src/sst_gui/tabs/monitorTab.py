@@ -9,6 +9,7 @@ from ..widgets.status import ProposalStatus, StatusBox, BLController
 from ..widgets.utils import HLine
 from ..widgets.manipulator_monitor import RealManipulatorControl, PseudoManipulatorControl
 from ..widgets.views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
+from ..widgets.sampleSelect import SampleSelectWidget
 
 
 class EnvironmentMonitor(QHBoxLayout):
@@ -59,8 +60,8 @@ class MonitorTab(QWidget):
         hbox.addWidget(RealManipulatorControl(beamline.primary_manipulator, model, orientation="v")
         )
         print("Added manipulator Monitor")
-
-        hbox.addWidget(StatusBox(user_status, "Selected Sample", "SAMPLE_SELECTED"))
+        hbox.addWidget(SampleSelectWidget(model))
+        hbox.addWidget(StatusBox(user_status, "Selected Information", "SAMPLE_SELECTED"))
         vbox.addLayout(hbox)
         vbox.addWidget(QtReRunningPlan(run_engine))
         print("Added Running Plan Monitor")

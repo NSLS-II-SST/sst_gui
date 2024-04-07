@@ -13,33 +13,29 @@ from qtpy.QtCore import Signal, Slot
 from bluesky_queueserver_api import BFunc
 
 
-class StatusBox(QWidget):
+class StatusBox(QGroupBox):
     signal_update_widget = Signal(object)
 
     def __init__(self, status_model, title, key, parent=None):
-        super().__init__(parent)
+        super().__init__(title, parent)
         self.model = status_model
         self.signal_update_widget.connect(self.update_md)
         self.model.register_signal(key, self.signal_update_widget)
-        self._group_box = QGroupBox(title)
         self.vbox = QVBoxLayout()
-        self.vbox2 = QVBoxLayout()
-        self._group_box.setLayout(self.vbox2)
-        self.vbox.addWidget(self._group_box)
         self.setLayout(self.vbox)
 
     @Slot(object)
     def update_md(self, user_md):
-        items_in_layout = self.vbox2.count()
+        items_in_layout = self.vbox.count()
         i = 0
         for k, v in user_md.items():
             if i + 1 > items_in_layout:
                 hbox = QHBoxLayout()
                 hbox.addWidget(QLabel(str(k)))
                 hbox.addWidget(QLabel(str(v)))
-                self.vbox2.addLayout(hbox)
+                self.vbox.addLayout(hbox)
             else:
-                hbox = self.vbox2.itemAt(i)
+                hbox = self.vbox.itemAt(i)
                 key = hbox.itemAt(0).widget()
                 val = hbox.itemAt(1).widget()
                 key.setText(str(k))

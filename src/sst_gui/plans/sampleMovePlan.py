@@ -6,37 +6,16 @@ from qtpy.QtWidgets import (
     QPushButton,
     QLineEdit,
     QLabel,
+    QWidget,
 )
-from qtpy.QtCore import Signal, QObject
-from .status import StatusBox
-from .manipulator_monitor import RealManipulatorMonitor
 from qtpy.QtGui import QDoubleValidator
 from bluesky_queueserver_api import BPlan
 
 
-class SampleSelectModel(QObject):
-    signal_update_widget = Signal(object)
-
-    def __init__(self, run_engine, user_status, *args, **kwargs):
-        super().__init__()
-        self.run_engine = run_engine
-        self.signal_update_widget.connect(self.update_samples)
-        user_status.register_signal("SAMPLE_LIST", self.signal_update_widget)
-        self.samples = {}
-        self.currentSample = {}
-
-    def update_samples(self, samples):
-        self.samples = samples
-        self.signal_update_widget.emit(samples)
-
-    def select_sample(self, sample, x, y, r, origin):
-        plan = BPlan("sample_move", x, y, r, sample, origin=origin)
-        return plan
-
-
-class SampleSelectWidget(QGroupBox):
+class SampleSelectWidget(PlanWidget):
     def __init__(self, model, parent=None, **kwargs):
-        super().__init__("Sample Selection", parent=parent)
+        super().__init__(model, parent)
+        self.display_name = "Move Sample"
         self.run_engine = model.run_engine
         self.model = SampleSelectModel(model.run_engine, model.user_status)
         self.model.signal_update_widget.connect(self.update_samples)
@@ -47,7 +26,7 @@ class SampleSelectWidget(QGroupBox):
         self.cb2 = QComboBox()
         self.cb2.addItem("Center", "center")
         self.cb2.addItem("Edge", "edge")
-        self.button = QPushButton("Move Sample")
+        self.button = QPushButton("Submit Plan")
         self.x = QLineEdit("0")
         self.x.setValidator(QDoubleValidator())
         self.y = QLineEdit("0")
@@ -74,7 +53,10 @@ class SampleSelectWidget(QGroupBox):
         for k, v in samples.items():
             self.cb.addItem(f"Sample {k}: {v['name']}", k)
 
-    def select_sample(self):
+    def check_plan_ready(self):
+        return True
+
+    def submit_plan(self):
         sample = self.cb.currentData()
         x = float(self.x.text())
         y = float(self.y.text())
@@ -82,4 +64,4 @@ class SampleSelectWidget(QGroupBox):
         print((x, y, r))
         origin = self.cb2.currentData()
         plan = BPlan("sample_move", x, y, r, sample, origin=origin)
-        self.run_engine._client.item_execute(plan)
+        self.run_engine._client.queue_item_add(item=plan)
