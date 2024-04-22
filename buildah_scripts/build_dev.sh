@@ -18,8 +18,7 @@ fi
 container=$(buildah from sst)
 buildah run $container -- dnf -y install qt5-qtbase-devel
 buildah run $container -- conda install -y pyqt
-buildah run $container -- pip3 install bluesky_queueserver_api
-
+buildah run $container -- pip3 install bluesky_queueserver_api qtconsole
 
 buildah unmount $container
 

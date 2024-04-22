@@ -16,6 +16,7 @@ from bluesky_queueserver_api import BPlan
 
 class SampleSelectModel(QObject):
     signal_update_widget = Signal(object)
+    signal_samples_updated = Signal(object)
 
     def __init__(self, run_engine, user_status, *args, **kwargs):
         super().__init__()
@@ -27,7 +28,7 @@ class SampleSelectModel(QObject):
 
     def update_samples(self, samples):
         self.samples = samples
-        self.signal_update_widget.emit(samples)
+        self.signal_samples_updated.emit(samples)
 
     def select_sample(self, sample, x, y, r, origin):
         plan = BPlan("sample_move", x, y, r, sample, origin=origin)

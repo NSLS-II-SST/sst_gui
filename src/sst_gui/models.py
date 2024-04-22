@@ -5,7 +5,8 @@ from bluesky_queueserver_api import BFunc
 from ophyd.signal import ConnectionTimeoutError
 from ophyd.utils.errors import DisconnectedError
 import time
-from sst_funcs.configuration import instantiateGroup
+
+from sst_funcs.load import instantiateDevice
 from .settings import SETTINGS
 from .autoconf import load_device_config
 from .widgets.motor import MotorControl, MotorMonitor
@@ -97,10 +98,19 @@ class UserStatus(QObject):
 class BeamlineModel:
     def __init__(self):
 
-        config = load_device_config(SETTINGS.object_config, SETTINGS.gui_config_file)
-        for key in config.keys():
+        config = load_device_config(
+            SETTINGS.object_config_file, SETTINGS.gui_config_file
+        )
+        for key, group_config in config.items():
             print(f"Loading {key} in BeamlineModel")
-            setattr(self, key, instantiateGroup(key, config=config))
+            setattr(
+                self,
+                key,
+                {
+                    device_key: instantiateDevice(device_key, device_info)
+                    for device_key, device_info in group_config.items()
+                },
+            )
         ekeys = list(self.energy.keys())
         if len(ekeys) == 1:
             self.primary_energy = self.energy[ekeys[0]]
@@ -180,7 +190,7 @@ class GVModel(BaseModel):
 
     def _cleanup(self):
         self.obj.state.unsubscribe(self.sub_key)
-        
+
     def open(self):
         self.obj.open_nonplan()
 
@@ -213,7 +223,7 @@ class PVModelRO(BaseModel):
         else:
             self.units = None
             print(f"{name} has no metadata")
-        
+
         self.value_type = None
         self._value = "Disconnected"
         self.sub_key = self.obj.subscribe(self._value_changed, run=True)
@@ -221,7 +231,6 @@ class PVModelRO(BaseModel):
 
     def _cleanup(self):
         self.obj.unsubscribe(self.sub_key)
-
 
     def _check_value(self):
         try:
@@ -278,7 +287,7 @@ class ScalarModel(BaseModel):
         else:
             self.units = None
             print(f"{name} has no metadata")
-        
+
         self.value_type = None
         self.sub_key = self.obj.target.subscribe(self._value_changed, run=True)
         timer = QTimer.singleShot(5000, self._check_value)
@@ -422,7 +431,6 @@ class PVPositionerModel(PVModel):
         except:
             QTimer.singleShot(10000, self._check_value)
 
-        
     def _check_setpoint(self):
         # Timeout errors self-explanatory. TypeErrors occur when a pseudopositioner times out and
         # tries to do an inverse calculation anyway
@@ -462,6 +470,7 @@ class PVPositionerModel(PVModel):
 
     def stop(self):
         self.obj.stop()
+
 
 class ControlModel(BaseModel):
     controlChange = Signal(str)

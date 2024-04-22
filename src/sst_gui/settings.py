@@ -40,6 +40,7 @@ class Settings:
     zmq_re_manager_control_addr = None
     zmq_re_manager_info_addr = None
     object_config = None
+    object_config_file = None
     gui_config = None
     gui_config_file = None
 

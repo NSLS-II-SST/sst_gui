@@ -1,4 +1,4 @@
-from sst_funcs.configuration import findAndLoadDevice
+from sst_funcs.load import instantiateDevice
 from .models import (
     GVModel,
     PVModel,
@@ -17,11 +17,13 @@ from .settings import SETTINGS
 # SST_CONFIG = pkg_resources.resource_filename("ucal", "sim_config.yaml")
 
 
-def modelFromOphyd(prefix, group=None, label=None, modelClass=BaseModel, **kwargs):
-    obj = findAndLoadDevice(prefix, config=SETTINGS.object_config)
-    name = obj.name
+def modelFromOphyd(
+    prefix, group=None, label=None, modelClass=BaseModel, *, name, **kwargs
+):
+    obj_info = SETTINGS.object_config[prefix]
+    obj = instantiateDevice(prefix, obj_info)
     if label is None:
-        label = getattr(obj, "display_name", name)
+        label = getattr(obj, "long_name", name)
     model = modelClass(name, obj, group, label, **kwargs)
     return model
 
@@ -53,7 +55,8 @@ def controlFromOphyd(prefix, group=None, label=None, requester=None, **kwargs):
 
 
 def energyModelFromOphyd(prefix, group=None, label=None, **kwargs):
-    obj = findAndLoadDevice(prefix, config=SETTINGS.object_config)
+    obj_info = SETTINGS.object_config[prefix]
+    obj = instantiateDevice(prefix, obj_info)
     name = obj.name
     energy = EnergyAxesModel(name, obj, group, name)
     grating_motor = PVPositionerModel(

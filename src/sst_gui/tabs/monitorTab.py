@@ -7,7 +7,10 @@ from bluesky_widgets.qt.run_engine_client import (
 )
 from ..widgets.status import ProposalStatus, StatusBox, BLController
 from ..widgets.utils import HLine
-from ..widgets.manipulator_monitor import RealManipulatorControl, PseudoManipulatorControl
+from ..widgets.manipulator_monitor import (
+    RealManipulatorControl,
+    PseudoManipulatorControl,
+)
 from ..widgets.views import AutoControl, AutoControlBox, AutoMonitor, AutoMonitorBox
 from ..widgets.sampleSelect import SampleSelectWidget
 
@@ -35,33 +38,41 @@ class MonitorTab(QWidget):
         statusDisplay = EnvironmentMonitor(
             run_engine, user_status, beamline.signals["sst_control"]
         )
-
         vbox.addLayout(statusDisplay)
         vbox.addWidget(HLine())
         beamBox = QHBoxLayout()
         print("Creating Beamline signals box")
 
-        beamBox.addWidget(AutoMonitorBox(beamline.signals, "Ring Signals", model, orientation='v'))
+        beamBox.addWidget(
+            AutoMonitorBox(beamline.signals, "Ring Signals", model, orientation="v")
+        )
         print("Beamline signals box added")
 
         print("Beamline shutters box")
         beamBox.addWidget(AutoControlBox(beamline.shutters, "Shutters", model))
         print("Beamline shutters box added")
 
-        beamBox.addWidget(PseudoManipulatorControl(beamline.primary_energy.energy, model))
+        beamBox.addWidget(
+            PseudoManipulatorControl(beamline.primary_energy.energy, model)
+        )
 
         vbox.addLayout(beamBox)
         vbox.addWidget(HLine())
 
         vbox.addWidget(AutoMonitorBox(beamline.detectors, "Detectors", model, "h"))
-        vbox.addWidget(AutoMonitorBox(beamline.vacuum, "Vacuum", model, "h"))
         print("Added detectors Monitor")
+        if hasattr(beamline, "vaccuum"):
+            vbox.addWidget(AutoMonitorBox(beamline.vacuum, "Vacuum", model, "h"))
+
         hbox = QHBoxLayout()
-        hbox.addWidget(RealManipulatorControl(beamline.primary_manipulator, model, orientation="v")
+        hbox.addWidget(
+            RealManipulatorControl(beamline.primary_manipulator, model, orientation="v")
         )
         print("Added manipulator Monitor")
         hbox.addWidget(SampleSelectWidget(model))
-        hbox.addWidget(StatusBox(user_status, "Selected Information", "SAMPLE_SELECTED"))
+        hbox.addWidget(
+            StatusBox(user_status, "Selected Information", "SAMPLE_SELECTED")
+        )
         vbox.addLayout(hbox)
         vbox.addWidget(QtReRunningPlan(run_engine))
         print("Added Running Plan Monitor")

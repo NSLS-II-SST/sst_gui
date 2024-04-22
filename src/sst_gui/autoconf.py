@@ -46,7 +46,7 @@ def replace_target_values(data, translation_dict, default_target=None, last_key=
     """
     new_data = {}
     for key, value in data.items():
-        if key == "_target_":
+        if key == "_target":
             class_name = value.split(".")[-1]
             if value in translation_dict:
                 new_data[key] = translation_dict[value]
@@ -59,16 +59,28 @@ def replace_target_values(data, translation_dict, default_target=None, last_key=
                     f"Warning: {class_name} not found in translation_dict and no default target was provided."
                 )
                 return {}
-        elif key == "name":
-            new_data["label"] = data["name"]
+        elif key == "long_name":
+            new_data["label"] = data["long_name"]
         elif key == "prefix":
             new_data["prefix"] = last_key
+        elif key == "_group":
+            new_data["_group"] = data["_group"]
         elif isinstance(value, dict):
             replaced_value = replace_target_values(
                 value, translation_dict, default_target, key
             )
             if replaced_value:
                 new_data[key] = replaced_value
+    return new_data
+
+
+def group_keys(data):
+    new_data = {}
+    for key, value in data.items():
+        group = value.get("_group", "misc")
+        if group not in new_data:
+            new_data[group] = {}
+        new_data[group][key] = value
     return new_data
 
 
@@ -127,8 +139,9 @@ def convert_config(config_dict, translation_updates={}, default_target=None):
     }
     default_translation_dict.update(translation_updates)
     new_config = replace_target_values(
-        apply_default_values(config_dict), default_translation_dict, default_target
+        config_dict, default_translation_dict, default_target
     )
+    new_config = group_keys(new_config)
     return new_config
 
 
@@ -136,7 +149,7 @@ def load_device_config(
     device_file, gui_file=None, translation_updates={}, default_target=None
 ):
     with open(device_file, "r") as f:
-        device_config = yaml.safe_load(f)
+        device_config = toml.load(f)
     if gui_file is not None:
         with open(gui_file, "r") as f:
             gui_config = toml.load(f)
@@ -147,12 +160,12 @@ def load_device_config(
     update_devices = gui_config.get("devices", {})
     for key in list(new_dev_config.keys()):
         update_section = update_devices.get(key, {})
-        if update_section.get('exclude', False):
+        if update_section.get("exclude", False):
             new_dev_config.pop(key)
         else:
             section = new_dev_config[key]
             for dkey in list(section.keys()):
-                if update_section.get(dkey, {}).get('exclude', False):
+                if update_section.get(dkey, {}).get("exclude", False):
                     section.pop(dkey, None)
                     continue
                 else:
