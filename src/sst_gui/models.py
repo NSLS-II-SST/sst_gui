@@ -96,36 +96,14 @@ class UserStatus(QObject):
 
 
 class BeamlineModel:
-    def __init__(self):
-
-        config = load_device_config(
-            SETTINGS.object_config_file, SETTINGS.gui_config_file
-        )
+    def __init__(self, config):
         for key, group_config in config.items():
             print(f"Loading {key} in BeamlineModel")
-            setattr(
-                self,
-                key,
-                {
-                    device_key: instantiateDevice(device_key, device_info)
-                    for device_key, device_info in group_config.items()
-                },
-            )
-        ekeys = list(self.energy.keys())
-        if len(ekeys) == 1:
-            self.primary_energy = self.energy[ekeys[0]]
-        else:
-            # Temporary until we can work out the config file
-            self.primary_energy = self.energy[ekeys[0]]
-        mkeys = list(self.manipulators.keys())
-        if len(mkeys) == 1:
-            self.primary_manipulator = self.manipulators[mkeys[0]]
-        else:
-            # Temporary until we can work out the config file
-            self.primary_manipulator = self.manipulators["manipulator"]
-        # Can we make an energy-builder that side-steps the need for this?
-        self.energy["en"].obj.rotation_motor = self.manipulators["manipulator"].obj.r
-        print("Finished loading BeamlineModel")
+            device_dict = {}
+            for device_key, device_info in group_config.items():
+                if device_info["_target"] != "IGNORE":
+                    device_dict[device_key] = instantiateDevice(device_key, device_info)
+            setattr(self, key, device_dict)
 
 
 class EnergyModel:

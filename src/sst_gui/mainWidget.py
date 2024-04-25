@@ -1,7 +1,5 @@
 from qtpy.QtWidgets import QTabWidget
 import pkg_resources
-import toml
-from os.path import exists
 from .settings import SETTINGS
 
 

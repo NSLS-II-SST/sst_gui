@@ -3,13 +3,12 @@ from bluesky_widgets.qt import Window
 from bluesky_widgets.qt.threading import wait_for_workers_to_quit, active_thread_count
 from .models import UserStatus
 from .confEdit import ConfigEditor
-
+from .load import simpleResolver
+from .autoconf import load_device_config
 from .settings import SETTINGS
 from .mainWidget import QtViewer
 
 from qtpy.QtWidgets import QAction, QApplication
-
-from .models import BeamlineModel
 
 
 class CustomWindow(Window):
@@ -48,7 +47,20 @@ class ViewerModel:
             http_server_api_key=SETTINGS.http_server_api_key,
         )
         self.user_status = UserStatus(self.run_engine)
-        self.beamline = BeamlineModel()
+
+        blModelPath = (
+            SETTINGS.gui_config.get("models", {}).get("beamline", {}).get("loader", "")
+        )
+        if blModelPath != "":
+            BeamlineModel = simpleResolver(blModelPath)
+        else:
+            from .models import BeamlineModel
+
+        config = load_device_config(
+            SETTINGS.object_config_file, SETTINGS.gui_config_file
+        )
+
+        self.beamline = BeamlineModel(config)
         self.settings = SETTINGS
 
 
