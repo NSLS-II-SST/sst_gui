@@ -9,7 +9,7 @@ authors = [
     { email = "ctitus@bnl.gov" },
 ]
 requires-python = ">=3.7"
-dependencies = ["bluesky_widgets", "qtpy", "ucal", "sst_base", "sst_funcs", "toml"]
+dependencies = ["bluesky_widgets", "bluesky_queueserver_api", "qtpy", "ophyd", "toml"]
 
 [project.urls]
 homepage = "https://github.com/NSLS-II-SST/sst-gui"  # Replace with your project's homepage

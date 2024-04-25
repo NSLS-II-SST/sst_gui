@@ -6,7 +6,7 @@ from ophyd.signal import ConnectionTimeoutError
 from ophyd.utils.errors import DisconnectedError
 import time
 
-from sst_funcs.load import instantiateDevice
+from .load import instantiateDevice
 from .settings import SETTINGS
 from .autoconf import load_device_config
 from .widgets.motor import MotorControl, MotorMonitor
