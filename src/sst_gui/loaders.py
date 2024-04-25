@@ -1,4 +1,4 @@
-from sst_funcs.load import instantiateDevice
+from .load import instantiateDevice
 from .models import (
     GVModel,
     PVModel,
