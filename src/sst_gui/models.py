@@ -4,6 +4,7 @@ from qtpy.QtWidgets import QWidget
 from bluesky_queueserver_api import BFunc
 from ophyd.signal import ConnectionTimeoutError
 from ophyd.utils.errors import DisconnectedError
+import numpy as np
 import time
 
 from .load import instantiateDevice
@@ -230,7 +231,10 @@ class PVModelRO(BaseModel):
                 self.value_type = type(value)
         try:
             if self.value_type is float:
-                value = "{:.3g}".format(value)
+                if np.abs(value) >= 1:
+                    value = "{:.3f}".format(value)
+                else:
+                    value = "{:.3e}".format(value)
             elif self.value_type is int:
                 value = "{:d}".format(value)
             else:
@@ -294,7 +298,11 @@ class ScalarModel(BaseModel):
                 self.value_type = type(value)
         try:
             if self.value_type is float:
-                value = "{:.2f}".format(value)
+                if np.abs(value) >= 1:
+                    value = "{:.3f}".format(value)
+                else:
+                    value = "{:.3e}".format(value)
+
             elif self.value_type is int:
                 value = "{:d}".format(value)
             else:
