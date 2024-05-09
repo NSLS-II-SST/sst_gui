@@ -8,7 +8,7 @@ from .base import PlanWidget
 
 class TimescanWidget(PlanWidget):
     def __init__(self, model, parent=None):
-        super().__init__(model, parent, steps=int, dwell=float, group_name=("Group Name", str), comment=str)
+        super().__init__(model, parent, steps=int, dwell=float, group_name=("Group Name", str), comment=str, eslit=float)
         self.display_name = "timescan"
 
     def check_plan_ready(self):
@@ -22,10 +22,11 @@ class TimescanWidget(PlanWidget):
     def submit_plan(self):
         params = self.get_params()
         item = BPlan(
-            "sst_count",
+            "axsys_count",
             params["steps"],
             dwell=params.get("dwell", None),
             comment=params.get("comment", None),
+            group_name=params.get("group_name", None)
         )
         self.run_engine_client.queue_item_add(item=item)
 
@@ -84,7 +85,7 @@ class ScanPlanWidget(PlanWidget):
         # end = float(self.modifier_input_to.text())
         # steps = int(self.modifier_input_steps.text())
         item = BPlan(
-            "sst_scan",
+            "axsys_scan",
             motor,
             params["start"],
             params["end"],

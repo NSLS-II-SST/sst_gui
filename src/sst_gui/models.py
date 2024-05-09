@@ -58,9 +58,12 @@ class UserStatus(QObject):
 
     def _reload_status(self):
         function = BFunc("get_status")
-        response = self.REClientModel._client.function_execute(
-            function, run_in_background=True
-        )
+        try:
+            response = self.REClientModel._client.function_execute(
+                function, run_in_background=True
+            )
+        except Exception as e:
+            print(f"reponse failed!! exception {e}")
         self.REClientModel._client.wait_for_completed_task(response["task_uid"])
         reply = self.REClientModel._client.task_result(response["task_uid"])
         task_status = reply["status"]
