@@ -18,7 +18,7 @@ class QtViewer(QTabWidget):
 
         explicit_inclusion = len(tabs_to_include) > 0
         self.tab_dict = {}
-        tabs = pkg_resources.iter_entry_points("sst_gui.tabs")
+        tabs = pkg_resources.iter_entry_points("nbs_gui.tabs")
         for tab_entry_point in tabs:
             tab = tab_entry_point.load()  # Load the modifier function
             if callable(tab):

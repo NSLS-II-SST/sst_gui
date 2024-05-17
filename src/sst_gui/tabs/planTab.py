@@ -55,7 +55,8 @@ class PlanSubmissionWidget(QWidget):
         self.run_engine_client = model.run_engine
         self.user_status = model.user_status
         self.action_dict = {}
-        plans = pkg_resources.iter_entry_points("sst_gui.plans")
+        plans = pkg_resources.iter_entry_points("nbs_gui.plans")
+        # Need to load only desired plans from config file!
         for plan_entry_point in plans:
             plan = plan_entry_point.load()  # Load the modifier function
             if callable(plan):

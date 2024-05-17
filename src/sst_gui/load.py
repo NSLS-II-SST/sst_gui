@@ -1,49 +1,9 @@
-import toml
 from copy import deepcopy
-from importlib import import_module
+from nbs_core.autoload import simpleResolver, instantiateOphyd
+from .settings import SETTINGS
 
 
-def loadConfigDB(filename):
-    """
-    Load configuration from a TOML file.
-
-    Parameters
-    ----------
-    filename : str
-        The path to the TOML file containing the configuration.
-
-    Returns
-    -------
-    dict
-        The configuration loaded from the TOML file.
-    """
-    with open(filename) as f:
-        db = toml.load(f)
-    return db
-
-
-def simpleResolver(fullclassname):
-    """
-    Resolve a full class name to a class object.
-
-    Parameters
-    ----------
-    fullclassname : str
-        The full class name to resolve.
-
-    Returns
-    -------
-    type
-        The class object resolved from the full class name.
-    """
-    class_name = fullclassname.split(".")[-1]
-    module_name = ".".join(fullclassname.split(".")[:-1])
-    module = import_module(module_name)
-    cls = getattr(module, class_name)
-    return cls
-
-
-def instantiateDevice(device_key, info, cls=None, namespace=None):
+def instantiateGUIDevice(device_key, info, cls=None, namespace=None):
     """
     Instantiate a device with given information.
 
@@ -76,34 +36,13 @@ def instantiateDevice(device_key, info, cls=None, namespace=None):
         device_info.pop(key)
 
     name = device_info.pop("name", device_key)
-    prefix = device_info.pop("prefix", "")
-    add_to_namespace = device_info.pop("_add_to_ns", True)
-    device = cls(prefix, name=name, **device_info)
+    device_info.pop("prefix", "")
 
-    if add_to_namespace and namespace is not None:
-        namespace[device_key] = device
+    obj_info = SETTINGS.object_config[device_key]
+    obj = instantiateOphyd(device_key, obj_info)
+
+    group = device_info.pop("group", None)
+    long_name = device_info.pop("long_name", name)
+    device = cls(name, obj, group, long_name, **device_info)
+
     return device
-
-
-def loadDeviceConfig(filename, namespace=None):
-    """
-    Load device configuration from a file and instantiate devices.
-
-    Parameters
-    ----------
-    filename : str
-        The path to the file containing the device configuration.
-    namespace : dict, optional
-        The namespace to add the instantiated devices to.
-
-    Returns
-    -------
-    dict
-        A dictionary of instantiated devices.
-    """
-    db = loadConfigDB(filename)
-    device_dict = {}
-    for key, info in db.items():
-        device = instantiateDevice(key, info, namespace=namespace)
-        device_dict[key] = device
-    return device_dict

@@ -3,8 +3,10 @@ from bluesky_widgets.qt import Window
 from bluesky_widgets.qt.threading import wait_for_workers_to_quit, active_thread_count
 from .models import UserStatus
 from .confEdit import ConfigEditor
-from .load import simpleResolver
-from .autoconf import load_device_config
+from .load import instantiateGUIDevice
+from nbs_core.autoload import loadFromConfig, simpleResolver
+from nbs_core.autoconf import generate_device_config
+
 from .settings import SETTINGS
 from .mainWidget import QtViewer
 
@@ -56,11 +58,12 @@ class ViewerModel:
         else:
             from .models import BeamlineModel
 
-        config = load_device_config(
+        config = generate_device_config(
             SETTINGS.object_config_file, SETTINGS.gui_config_file
         )
+        devices, groups, roles = loadFromConfig(config, instantiateGUIDevice)
 
-        self.beamline = BeamlineModel(config)
+        self.beamline = BeamlineModel(devices, groups, roles)
         self.settings = SETTINGS
 
 

@@ -52,9 +52,7 @@ class MonitorTab(QWidget):
         beamBox.addWidget(AutoControlBox(beamline.shutters, "Shutters", model))
         print("Beamline shutters box added")
 
-        beamBox.addWidget(
-            PseudoManipulatorControl(beamline.primary_energy.energy, model)
-        )
+        beamBox.addWidget(PseudoManipulatorControl(beamline.energy.energy, model))
 
         vbox.addLayout(beamBox)
         vbox.addWidget(HLine())

@@ -22,13 +22,13 @@ sst-edit-config = "sst_gui.confEdit:main"
 
 [project.optional-dependencies]
 
-[project.entry-points."sst_gui.plans"]
+[project.entry-points."nbs_gui.plans"]
 sst-gui-scan = "sst_gui.plans.scanPlan:ScanPlanWidget"
 sst-gui-move = "sst_gui.plans.movePlan:MovePlanWidget"
 sst-gui-xas = "sst_gui.plans.xasPlan:XASPlanWidget"
 sst-gui-timescan = "sst_gui.plans.scanPlan:TimescanWidget"
 
-[project.entry-points."sst_gui.tabs"]
+[project.entry-points."nbs_gui.tabs"]
 sst-gui-plans = "sst_gui.tabs.planTab:PlanTabWidget"
 sst-gui-motors = "sst_gui.tabs.motorTab:MotorTab"
 sst-gui-queue = "sst_gui.tabs.queueControlTab:QueueControlTab"

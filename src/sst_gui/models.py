@@ -6,15 +6,10 @@ from ophyd.signal import ConnectionTimeoutError
 from ophyd.utils.errors import DisconnectedError
 import time
 
-from .load import instantiateDevice
-from .settings import SETTINGS
-from .autoconf import load_device_config
 from .widgets.motor import MotorControl, MotorMonitor
 from .widgets.monitors import PVMonitor, PVControl
 from .widgets.gatevalve import GVControl, GVMonitor
 from .widgets.energy import EnergyControl, EnergyMonitor
-
-# loadConfigDB("/home/xf07id1/nsls-ii-sst/ucal/ucal/object_config.yaml")
 
 
 class UserStatus(QObject):
@@ -95,17 +90,6 @@ class UserStatus(QObject):
             self._start_thread()
 
 
-class BeamlineModel:
-    def __init__(self, config):
-        for key, group_config in config.items():
-            print(f"Loading {key} in BeamlineModel")
-            device_dict = {}
-            for device_key, device_info in group_config.items():
-                if device_info["_target"] != "IGNORE":
-                    device_dict[device_key] = instantiateDevice(device_key, device_info)
-            setattr(self, key, device_dict)
-
-
 class EnergyModel:
     default_controller = EnergyControl
     default_monitor = EnergyMonitor
@@ -114,18 +98,21 @@ class EnergyModel:
         self,
         name,
         obj,
-        energy,
-        grating_motor,
         group,
-        label,
+        long_name,
         **kwargs,
     ):
+        self.energy = EnergyAxesModel(name, obj, group, name)
+        self.grating_motor = PVPositionerModel(
+            name=obj.monoen.gratingx.name,
+            obj=obj.monoen.gratingx,
+            group=group,
+            long_name=f"{name} Grating",
+        )
         self.name = name
         self.obj = obj
-        self.energy = energy
-        self.grating_motor = grating_motor
         self.group = group
-        self.label = label
+        self.long_name = long_name
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -134,7 +121,7 @@ class BaseModel(QWidget):
     default_controller = None
     default_monitor = PVMonitor
 
-    def __init__(self, name, obj, group, label, **kwargs):
+    def __init__(self, name, obj, group, long_name, **kwargs):
         super().__init__()
         self.name = name
         self.obj = obj
@@ -144,7 +131,7 @@ class BaseModel(QWidget):
             except:
                 print(f"{name} timed out waiting for connection, moving on!")
         self.group = group
-        self.label = label
+        self.label = long_name
         self.enabled = True
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -161,8 +148,8 @@ class GVModel(BaseModel):
     default_monitor = GVMonitor
     gvStatusChanged = Signal(str)
 
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.sub_key = self.obj.state.subscribe(self._status_change, run=True)
         timer = QTimer.singleShot(5000, self._check_status)
 
@@ -193,8 +180,8 @@ class GVModel(BaseModel):
 class PVModelRO(BaseModel):
     valueChanged = Signal(str)
 
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         if hasattr(obj, "metadata"):
             self.units = obj.metadata.get("units", None)
             print(f"{name} has units {self.units}")
@@ -257,8 +244,8 @@ class PVModel(PVModelRO):
 class ScalarModel(BaseModel):
     valueChanged = Signal(str)
 
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         if hasattr(obj, "metadata"):
             self.units = obj.metadata.get("units", None)
             print(f"{name} has units {self.units}")
@@ -311,8 +298,8 @@ class MotorModel(PVModel):
     movingStatusChanged = Signal(bool)
     setpointChanged = Signal(object)
 
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.obj.motor_is_moving.subscribe(self._update_moving_status)
         if hasattr(self.obj, "user_setpoint"):
             self._obj_setpoint = self.obj.user_setpoint
@@ -371,8 +358,8 @@ class PVPositionerModel(PVModel):
     movingStatusChanged = Signal(bool)
     setpointChanged = Signal(object)
 
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         print("Initializing PVPositionerModel")
         if hasattr(self.obj, "user_setpoint"):
             self._obj_setpoint = self.obj.user_setpoint
@@ -421,7 +408,7 @@ class PVPositionerModel(PVModel):
             return
 
         if new_sp != self._setpoint and self._moving:
-            # print(self.label, new_sp, self._setpoint, type(new_sp))
+            print(self.label, new_sp, self._setpoint, type(new_sp))
             self._setpoint = new_sp
             self.setpointChanged.emit(self._setpoint)
 
@@ -453,8 +440,8 @@ class PVPositionerModel(PVModel):
 class ControlModel(BaseModel):
     controlChange = Signal(str)
 
-    def __init__(self, name, obj, group, label, requester=None, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, requester=None, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.requester = requester
         self.obj.subscribe(self._control_change)
 
@@ -476,51 +463,60 @@ class HexapodModel(BaseModel):
 
 class PseudoPositionerModel(BaseModel):
     # Needs to check real_axis for PVPositioner or Motor
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.real_axes_models = [
             PVPositionerModel(
-                name=real_axis.name, obj=real_axis, group=group, label=real_axis.name
+                name=real_axis.name,
+                obj=real_axis,
+                group=group,
+                long_name=real_axis.name,
             )
             for real_axis in obj.real_positioners
         ]
         self.pseudo_axes_models = [
             PVPositionerModel(
-                name=ps_axis.name, obj=ps_axis, group=group, label=ps_axis.name
+                name=ps_axis.name, obj=ps_axis, group=group, long_name=ps_axis.name
             )
             for ps_axis in obj.pseudo_positioners
         ]
 
 
 class EnergyAxesModel(BaseModel):
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.real_axes_models = [
             PVPositionerModel(
-                name=real_axis.name, obj=real_axis, group=group, label=real_axis.name
+                name=real_axis.name,
+                obj=real_axis,
+                group=group,
+                long_name=real_axis.name,
             )
             for real_axis in obj.real_positioners
         ]
         self.pseudo_axes_models = [
             PVPositionerModel(
-                name=ps_axis.name, obj=ps_axis, group=group, label=ps_axis.name
+                name=ps_axis.name, obj=ps_axis, group=group, long_name=ps_axis.name
             )
             for ps_axis in obj.pseudo_positioners
         ]
 
 
 class ManipulatorModel(BaseModel):
-    def __init__(self, name, obj, group, label, **kwargs):
-        super().__init__(name, obj, group, label, **kwargs)
+    def __init__(self, name, obj, group, long_name, **kwargs):
+        super().__init__(name, obj, group, long_name, **kwargs)
         self.real_axes_models = [
             MotorModel(
-                name=real_axis.name, obj=real_axis, group=group, label=real_axis.name
+                name=real_axis.name,
+                obj=real_axis,
+                group=group,
+                long_name=real_axis.name,
             )
             for real_axis in obj.real_positioners
         ]
         self.pseudo_axes_models = [
             PVPositionerModel(
-                name=ps_axis.name, obj=ps_axis, group=group, label=ps_axis.name
+                name=ps_axis.name, obj=ps_axis, group=group, long_name=ps_axis.name
             )
             for ps_axis in obj.pseudo_positioners
         ]
