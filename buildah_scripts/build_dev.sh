@@ -5,7 +5,7 @@ set -o xtrace
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 host_package_dir=$(dirname "$script_dir")/src
-container_package_dir=/usr/local/src/sst_gui
+container_script_dir=/usr/local/bin
 
 version="0.0.1"
 
@@ -19,6 +19,9 @@ container=$(buildah from sst)
 buildah run $container -- dnf -y install qt5-qtbase-devel
 buildah run $container -- conda install -y pyqt
 buildah run $container -- pip3 install bluesky_queueserver_api qtconsole
+buildah copy $container $script_dir/run_dev.sh $container_script_dir
+buildah config --cmd "bash $container_script_dir/run_dev.sh" $container
+
 
 buildah unmount $container
 
